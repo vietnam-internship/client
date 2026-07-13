@@ -1,6 +1,6 @@
 ---
 name: commit-split
-description: 현재 변경사항을 빌드 단위(컴파일 통과 기준)로 최대한 작게 쪼개 커밋 순서와 의존 그래프를 제안한다
+description: 현재 변경사항을 빌드 단위(tsc + vite build 통과 기준)로 최대한 작게 쪼개 커밋 순서와 의존 그래프를 제안한다
 triggers:
   - commit split
   - 커밋 쪼개기
@@ -12,21 +12,21 @@ triggers:
 
 # Commit Split
 
-변경된 파일들을 분석해 "각 커밋이 독립적으로 컴파일·빌드 통과"하는 최소 단위로 쪼개고,
+변경된 파일들을 분석해 "각 커밋이 독립적으로 타입체크·빌드 통과"하는 최소 단위로 쪼개고,
 커밋 순서와 의존 그래프를 한눈에 보여준다.
 
 ## Inputs
 
-- 현재 git diff (staged + unstaged) 또는 이번 세션에서 작업한 파일 목록
-- 프로젝트 언어/빌드 도구 (Java/Gradle, TypeScript/npm 등)
+- 현재 git diff (staged + unstaged + untracked) 또는 이번 세션에서 작업한 파일 목록
+- 프로젝트 빌드 명령: `npm run build` (`tsc -b && vite build`), `npm run lint`
 
 ## Steps
 
 ### 1. 변경 파일 수집
 
 ```bash
+git status --short
 git diff --name-only HEAD
-git diff --name-only --cached
 ```
 
 파일이 없으면 이번 세션에서 직접 수정한 파일 목록을 사용한다.
@@ -37,13 +37,14 @@ git diff --name-only --cached
 
 | 레이어 | 해당 파일 유형 |
 |---|---|
-| 0 — 인프라/설정 | DB 마이그레이션, yml, properties |
-| 1 — 도메인/엔티티 | Entity, Enum, Repository 인터페이스 |
-| 2 — DTO | Request/Response record·class |
-| 3 — 서비스/유스케이스 | Service, UseCase |
-| 4 — 컨트롤러/API | Controller, ControllerApi (인터페이스) |
-| 5 — 테스트 | *Test.java, Fixture |
-| 6 — 문서 | *.md, OpenAPI spec |
+| 0 — 인프라/설정 | package.json + lock, vite.config.ts, tsconfig*, eslint.config.js, .env |
+| 1 — 타입/상수 | 타입 선언(types/*.ts), enum·상수, 전역 스타일(index.css), 정적 에셋(assets/) |
+| 2 — API/데이터 | API 클라이언트, fetch 함수, 응답/요청 타입 |
+| 3 — 훅/유틸/상태 | 커스텀 훅(use*.ts), 유틸 함수, 전역 상태(store) |
+| 4 — 공용 컴포넌트 | 재사용 UI 컴포넌트(Button, Input 등) + 해당 CSS |
+| 5 — 페이지/라우팅 | 페이지 컴포넌트, 라우트 등록, App.tsx |
+| 6 — 테스트 | *.test.ts(x), 테스트 유틸·목 데이터 |
+| 7 — 문서 | *.md, docs/ 이하 파일 |
 
 ### 3. 레이어 내 파일 묶기
 
@@ -54,8 +55,8 @@ git diff --name-only --cached
 
 각 커밋 후보에 대해 "이 커밋만 체크아웃했을 때 빌드가 통과하는가"를 따진다.
 
-- **통과 조건**: 컴파일 오류 없음 + 기존 테스트 깨지지 않음
-- **주의**: 인터페이스를 먼저 커밋하고 구현체가 없으면 컴파일 실패 → 인터페이스+구현체는 같은 커밋으로 묶는다
+- **통과 조건**: `tsc -b` 오류 없음 + `vite build` 성공 + `eslint` 통과 + 기존 테스트 깨지지 않음
+- **주의**: 아직 아무도 import하지 않는 파일을 먼저 커밋하는 것은 항상 안전하다. 반대로 import 대상이 없는 파일을 커밋하면 컴파일 실패 → 의존 대상과 같은 커밋으로 묶거나 앞 커밋으로 보낸다
 
 ### 5. 커밋 메시지 제안
 
@@ -63,11 +64,12 @@ git diff --name-only --cached
 
 | type | 사용 시점 |
 |---|---|
-| `feat` | 새 기능 추가 |
+| `feat` | 새 기능·화면·컴포넌트 추가 |
 | `fix` | 버그 수정 |
+| `style` | CSS·레이아웃 등 화면 스타일 변경 |
 | `test` | 테스트 추가·수정 |
 | `refactor` | 동작 변경 없는 코드 개선 |
-| `docs` | 문서만 변경 |
+| `docs` | 문서·디자인 시안만 변경 |
 | `chore` | 빌드 설정, 의존성 등 |
 
 ### 6. 의존 그래프 출력
@@ -94,11 +96,14 @@ Commit 4      Commit 5 (독립)
 
 ## Constraints & Pitfalls
 
-- **인터페이스+구현 분리 금지**: Spring Controller 인터페이스와 구현체는 분리하면 `@Override` 오류. 반드시 같은 커밋.
-- **DTO 먼저**: Service가 DTO를 쓰면 DTO 커밋이 Service 커밋보다 앞에 와야 한다.
-- **테스트는 항상 마지막**: 프로덕션 코드가 없으면 테스트 컴파일 불가. 테스트 픽스처도 동일 커밋 또는 그 직후.
-- **문서는 어디든**: `.md` 파일은 빌드와 무관하므로 어느 커밋에 넣어도 된다.
-- **DB 마이그레이션은 첫 커밋**: Entity와 같이 넣거나 한 커밋 앞에 둔다.
+- **컴포넌트 + 스타일 + 에셋은 한 몸**: 컴포넌트가 import하는 CSS 모듈·이미지·SVG는 반드시 같은 커밋. 없으면 vite 빌드 실패.
+- **barrel(index.ts) 수정은 대상 파일과 함께**: index.ts에 export를 추가했다면 export 대상 파일과 같은 커밋.
+- **라우트 등록은 페이지와 함께 또는 이후**: App.tsx·라우터에 페이지를 등록하는 변경은 페이지 컴포넌트 커밋과 같거나 뒤에 온다.
+- **타입 먼저**: 컴포넌트·훅이 쓰는 타입은 그보다 앞 커밋에 있어야 한다.
+- **미사용 코드 주의**: `noUnusedLocals`·eslint 때문에 "선언만 하고 아직 안 쓰는" 코드가 lint/타입체크에 걸릴 수 있다. 걸리면 사용처와 같은 커밋으로 합친다.
+- **package.json과 lock 파일은 같은 커밋**: 의존성 추가는 두 파일을 항상 함께 커밋한다.
+- **테스트는 항상 마지막**: 대상 코드가 없으면 테스트 컴파일 불가. 목 데이터·테스트 유틸도 동일 커밋 또는 그 직후.
+- **문서·디자인 시안은 어디든**: `.md`, `docs/` 이하 파일은 빌드와 무관하므로 어느 커밋에 넣어도 된다.
 
 ## Output Format
 
