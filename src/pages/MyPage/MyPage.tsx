@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import BottomNav from '../../components/BottomNav'
-import Header from '../../components/Header'
-import { CalendarIcon, LogoutIcon } from '../../components/icons'
+import BottomNav from '@/components/BottomNav'
+import Header from '@/components/Header'
+import { CalendarIcon, LogoutIcon } from '@/components/icons'
 import MenuCard from './MenuCard'
 
 interface MyPageProps {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import type { Reservation } from '../../data/reservations'
+import type { Reservation } from '@/data/reservations'
 
 function ReservationListCard({ reservation }: { reservation: Reservation }) {
   return (

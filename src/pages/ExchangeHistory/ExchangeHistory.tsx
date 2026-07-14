@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import BottomNav from '../../components/BottomNav'
-import Header from '../../components/Header'
-import { RESERVATIONS } from '../../data/reservations'
+import BottomNav from '@/components/BottomNav'
+import Header from '@/components/Header'
+import { RESERVATIONS } from '@/data/reservations'
 import HistoryCard from './HistoryCard'
 import SegmentedTabs from './SegmentedTabs'
 

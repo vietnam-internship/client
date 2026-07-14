@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import BottomNav from '../../components/BottomNav'
-import Header from '../../components/Header'
-import { ArrowRightIcon, QrCodeIcon } from '../../components/icons'
-import { findReservation } from '../../data/reservations'
+import BottomNav from '@/components/BottomNav'
+import Header from '@/components/Header'
+import { ArrowRightIcon, QrCodeIcon } from '@/components/icons'
+import { findReservation } from '@/data/reservations'
 import CancelDialog from './CancelDialog'
 import InfoCard from './InfoCard'
 

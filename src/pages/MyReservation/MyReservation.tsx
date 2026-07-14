@@ -1,6 +1,6 @@
-import BottomNav from '../../components/BottomNav'
-import Header from '../../components/Header'
-import { RESERVATIONS } from '../../data/reservations'
+import BottomNav from '@/components/BottomNav'
+import Header from '@/components/Header'
+import { RESERVATIONS } from '@/data/reservations'
 import ReservationListCard from './ReservationListCard'
 
 function MyReservation() {
