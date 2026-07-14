@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '../../components/Header'
+import Header from '@/components/Header'
 
 interface RegisterProps {
   onComplete: () => void

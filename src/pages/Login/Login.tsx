@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import txLogo from '../../assets/tx_logo.svg'
+import txLogo from '@/assets/tx_logo.svg'
 
 function GoogleIcon() {
   return (
