@@ -1,36 +1,36 @@
-### 관련 이슈
-- resolves #
+### Related Issue
+- Resolves #
 
 ---
 
-### 변경 유형
-- [ ] 코드 / 기능 / 버그픽스
-- [ ] 스타일 / 마크업 (레이아웃, CSS, 반응형 등)
-- [ ] 인프라 / CI / 빌드
-- [ ] 문서 (별도 PR + `문서` 라벨 권장)
+### Type of Change
+- [ ] Feature / Bug Fix / Code Changes
+- [ ] UI / Styling (Layout, CSS, Responsive Design, etc.)
+- [ ] Infrastructure / CI / Build
+- [ ] Documentation (Separate PR with the `documentation` label recommended)
 
-> 📄 **문서 분리 컨벤션:** 코드 PR에 `docs/` 변경을 섞지 않는다. 문서는 별도 PR로 올리고 `문서` 라벨을 단다.
-> 예외: 이 변경을 설명하는 ADR, 또는 이 변경으로 사실이 바뀌는 기존 문서의 정정은 함께 올려도 된다.
+> 📄 **Documentation Convention:** Do not mix changes under `docs/` with code changes in the same PR. Submit documentation updates as a separate PR and add the `documentation` label.
+> Exception: You may include an ADR explaining this change or updates to existing documentation if the change affects factual information.
 
 ---
 
-### 변경 요약
-> 무엇을, 왜 바꿨는지 2-3줄로.
+### Summary of Changes
+> Briefly describe what was changed and why (2–3 lines).
 -
 
 ---
 
-### 화면 / 동작 확인
-> 스크린샷, GIF, 또는 배포 링크. 변경 전/후 비교가 있으면 더 좋습니다.
+### Verification
+> Include screenshots, GIFs, or a deployment link. Before/after comparisons are appreciated when applicable.
 
 ---
 
-### 의사결정
-> 이 방식을 택한 이유. 고려했지만 버린 대안이 있다면 한 줄 이유와 함께.
+### Design Decisions
+> Explain why this approach was chosen. If you considered alternatives, briefly mention why they were not selected.
 -
 
 ---
 
-### 리뷰 포인트
-> 리뷰어가 집중해야 할 부분. 의도가 자명하지 않은 코드·설계는 여기에 설명해 주세요.
+### Review Focus
+> Highlight the areas reviewers should pay special attention to. Explain any implementation or design decisions that may not be immediately obvious.
 -
