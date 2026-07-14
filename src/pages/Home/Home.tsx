@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import NotificationPanel, { type Notification } from '@/components/NotificationPanel'
+import PageLayout from '@/components/PageLayout'
 import { BellIcon, SearchIcon } from '@/components/icons'
 import AiReportCard from './AiReportCard'
 import PickupCard from './PickupCard'
@@ -37,7 +38,7 @@ function Home() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout className="relative">
       <Header
         right={
           <button
@@ -105,7 +106,7 @@ function Home() {
       </main>
 
       <BottomNav active="home" />
-    </div>
+    </PageLayout>
   )
 }
 

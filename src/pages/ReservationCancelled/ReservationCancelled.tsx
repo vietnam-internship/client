@@ -1,6 +1,9 @@
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import ActionButton from '@/components/ActionButton'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
+import PageLayout from '@/components/PageLayout'
+import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { XIcon } from '@/components/icons'
 import { findReservation } from '@/data/reservations'
 
@@ -19,7 +22,7 @@ function ReservationCancelled() {
   ]
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <Header />
 
       <main className="flex flex-1 flex-col px-4 pb-28">
@@ -34,12 +37,7 @@ function ReservationCancelled() {
           Your currency exchange reservation has been cancelled.
         </p>
 
-        <section className="mt-6 rounded-xl bg-gray-100 py-4 text-center">
-          <p className="text-[12px] text-gray-400">Reservation number</p>
-          <p className="mt-1 text-[17px] font-bold text-gray-900">
-            {reservation.reservationNumber}
-          </p>
-        </section>
+        <ReservationNumberCard className="mt-6" number={reservation.reservationNumber} />
 
         <dl className="mt-auto border-t border-gray-200 pt-0">
           {summary.map(({ label, value }) => (
@@ -53,22 +51,16 @@ function ReservationCancelled() {
           ))}
         </dl>
 
-        <Link
-          to="/mypage/reservations"
-          className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-primary text-[14px] font-bold text-white transition-opacity hover:opacity-90"
-        >
+        <ActionButton to="/mypage/reservations" className="mt-4">
           Back to list
-        </Link>
-        <Link
-          to="/"
-          className="mt-2.5 flex h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white text-[14px] font-bold text-gray-900 transition-colors hover:bg-gray-50"
-        >
+        </ActionButton>
+        <ActionButton to="/" variant="secondary" className="mt-2.5">
           Back to home
-        </Link>
+        </ActionButton>
       </main>
 
       <BottomNav active="profile" />
-    </div>
+    </PageLayout>
   )
 }
 

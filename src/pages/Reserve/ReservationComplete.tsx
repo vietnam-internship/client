@@ -1,4 +1,7 @@
-import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useParams } from 'react-router-dom'
+import ActionButton from '@/components/ActionButton'
+import PageLayout from '@/components/PageLayout'
+import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { CheckIcon } from '@/components/icons'
 import { findPickupLocation } from '@/data/offices'
 import type { ReservationDraft } from './ReviewReservation'
@@ -22,7 +25,7 @@ function ReservationComplete() {
   ]
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <main className="flex flex-1 flex-col px-4 pb-8">
         <div className="mt-[100px] flex h-[68px] w-[68px] items-center justify-center self-center rounded-2xl bg-[#ecf3e0]">
           <CheckIcon className="h-7 w-7 text-[#4e7137]" strokeWidth={2.5} />
@@ -35,10 +38,7 @@ function ReservationComplete() {
           Your currency exchange reservation was submitted successfully.
         </p>
 
-        <section className="mt-7 rounded-xl bg-gray-100 py-4 text-center">
-          <p className="text-[12px] text-gray-400">Reservation number</p>
-          <p className="mt-1 text-[17px] font-bold text-gray-900">{state.reservationNumber}</p>
-        </section>
+        <ReservationNumberCard className="mt-7" number={state.reservationNumber} />
 
         <div className="mt-8 flex justify-center">
           <QrPlaceholder />
@@ -56,20 +56,14 @@ function ReservationComplete() {
           ))}
         </dl>
 
-        <Link
-          to="/mypage/reservations"
-          className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-primary text-[14px] font-bold text-white transition-opacity hover:opacity-90"
-        >
+        <ActionButton to="/mypage/reservations" className="mt-4">
           View reservation
-        </Link>
-        <Link
-          to="/"
-          className="mt-2.5 flex h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white text-[14px] font-bold text-gray-900 transition-colors hover:bg-gray-50"
-        >
+        </ActionButton>
+        <ActionButton to="/" variant="secondary" className="mt-2.5">
           Back to home
-        </Link>
+        </ActionButton>
       </main>
-    </div>
+    </PageLayout>
   )
 }
 

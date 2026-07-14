@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
+import PageLayout from '@/components/PageLayout'
+import ProfileCard from '@/components/ProfileCard'
 import { CalendarIcon, LogoutIcon } from '@/components/icons'
 import MenuCard from './MenuCard'
 
@@ -12,19 +14,13 @@ function MyPage({ onLogout }: MyPageProps) {
   const navigate = useNavigate()
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <Header backTo="/" />
 
       <main className="flex-1 px-5 pb-28">
         <h1 className="mt-4 text-[16px] font-bold text-gray-900">MyPage</h1>
 
-        <section className="mt-4 flex items-center gap-3 rounded-xl bg-gray-100 px-4 py-3.5">
-          <span className="h-9 w-9 shrink-0 rounded-full bg-blue-200" />
-          <div>
-            <p className="text-[14px] font-bold text-gray-900">User</p>
-            <p className="text-[13px] text-gray-600">user@gmail.com</p>
-          </div>
-        </section>
+        <ProfileCard className="mt-4" title="User" email="user@gmail.com" />
 
         <div className="mt-5 flex flex-col gap-3">
           <MenuCard
@@ -54,7 +50,7 @@ function MyPage({ onLogout }: MyPageProps) {
       </main>
 
       <BottomNav active="profile" />
-    </div>
+    </PageLayout>
   )
 }
 

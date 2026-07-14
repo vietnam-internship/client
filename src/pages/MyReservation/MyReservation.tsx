@@ -1,5 +1,6 @@
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
+import PageLayout from '@/components/PageLayout'
 import { RESERVATIONS } from '@/data/reservations'
 import ReservationListCard from './ReservationListCard'
 
@@ -7,7 +8,7 @@ function MyReservation() {
   const reservations = RESERVATIONS.filter((r) => r.status === 'active')
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <Header backTo="/mypage" />
 
       <main className="flex-1 px-3.5 pb-28">
@@ -21,7 +22,7 @@ function MyReservation() {
       </main>
 
       <BottomNav active="profile" />
-    </div>
+    </PageLayout>
   )
 }
 

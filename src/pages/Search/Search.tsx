@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
-import { ArrowLeftIcon, SearchIcon } from '@/components/icons'
+import ListRowLink from '@/components/ListRowLink'
+import PageLayout from '@/components/PageLayout'
+import { ArrowLeftIcon, ChevronRightIcon, SearchIcon } from '@/components/icons'
 import { CURRENCIES } from '@/data/currencies'
-import CurrencyListItem from './CurrencyListItem'
 import RecentSearches from './RecentSearches'
 
 const RECENT_KEY = 'travelx.recentSearches'
@@ -40,7 +41,7 @@ function Search() {
     : CURRENCIES
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <header className="sticky top-0 z-20 flex h-[54px] shrink-0 items-center gap-3 border-b border-gray-100 bg-white px-4">
         <Link to="/" aria-label="Back" className="shrink-0 text-primary">
           <ArrowLeftIcon className="h-[22px] w-[22px]" />
@@ -74,13 +75,21 @@ function Search() {
         </h2>
         <ul className="mt-2">
           {results.map((currency) => (
-            <CurrencyListItem key={currency.code} currency={currency} onSelect={addRecent} />
+            <ListRowLink
+              key={currency.code}
+              to={`/currency/${currency.code.toLowerCase()}`}
+              onClick={() => addRecent(currency.code)}
+              className="py-[11px]"
+              title={currency.code}
+              subtitle={currency.name}
+              right={<ChevronRightIcon className="h-5 w-5 shrink-0 text-gray-300" />}
+            />
           ))}
         </ul>
       </main>
 
       <BottomNav active="home" />
-    </div>
+    </PageLayout>
   )
 }
 

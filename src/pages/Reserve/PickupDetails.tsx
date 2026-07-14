@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
+import PageLayout from '@/components/PageLayout'
 import { ArrowUpDownIcon } from '@/components/icons'
 import { findPickupLocation } from '@/data/offices'
 import AmountField from './AmountField'
@@ -65,7 +66,7 @@ function PickupDetails() {
   if (swapped) fields.reverse()
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <Header backTo={-1} />
 
       <main className="flex-1 px-4 pb-28">
@@ -143,7 +144,7 @@ function PickupDetails() {
       </main>
 
       <BottomNav active="exchange" />
-    </div>
+    </PageLayout>
   )
 }
 

@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import PageLayout from '@/components/PageLayout'
 import txLogo from '@/assets/tx_logo.svg'
 
 function GoogleIcon() {
@@ -33,7 +34,7 @@ function Login() {
   const navigate = useNavigate()
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white text-center">
+    <PageLayout className="relative text-center">
       <header className="absolute top-0 left-0 p-4">
       
       </header>
@@ -66,7 +67,7 @@ function Login() {
 
         <p className="mt-3.5 text-[11px] text-gray-400">🔒 Bank-level security</p>
       </main>
-    </div>
+    </PageLayout>
   )
 }
 

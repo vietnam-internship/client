@@ -1,7 +1,9 @@
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
+import ActionButton from '@/components/ActionButton'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import InfoCard from '@/components/InfoCard'
+import PageLayout from '@/components/PageLayout'
 import { ArrowRightIcon } from '@/components/icons'
 import { findPickupLocation } from '@/data/offices'
 
@@ -32,7 +34,7 @@ function ReviewReservation() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <Header backTo={-1} />
 
       <main className="flex-1 px-4 pb-28">
@@ -57,17 +59,13 @@ function ReviewReservation() {
           verification at pickup.
         </p>
 
-        <button
-          type="button"
-          onClick={handleConfirm}
-          className="mt-7 h-12 w-full cursor-pointer rounded-xl bg-primary text-[14px] font-bold text-white transition-opacity hover:opacity-90"
-        >
+        <ActionButton onClick={handleConfirm} className="mt-7">
           Confirm reservation
-        </button>
+        </ActionButton>
       </main>
 
       <BottomNav active="exchange" />
-    </div>
+    </PageLayout>
   )
 }
 

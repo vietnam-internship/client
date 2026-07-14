@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
+import PageLayout from '@/components/PageLayout'
 import { RESERVATIONS } from '@/data/reservations'
 import HistoryCard from './HistoryCard'
 import SegmentedTabs from './SegmentedTabs'
@@ -12,7 +13,7 @@ function ExchangeHistory() {
   const items = RESERVATIONS.filter((r) => r.status === tab)
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <Header backTo="/mypage" />
 
       <main className="flex-1 px-3.5 pb-28">
@@ -40,7 +41,7 @@ function ExchangeHistory() {
       </main>
 
       <BottomNav active="profile" />
-    </div>
+    </PageLayout>
   )
 }
 

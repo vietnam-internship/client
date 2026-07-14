@@ -1,11 +1,12 @@
 import { Navigate, useParams } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
+import ListRowLink from '@/components/ListRowLink'
+import PageLayout from '@/components/PageLayout'
 import { ExchangeIcon } from '@/components/icons'
 import { BRANCHES } from '@/data/branches'
 import { findCurrency } from '@/data/currencies'
 import AiRecommendationCard from './AiRecommendationCard'
-import BranchRow from './BranchRow'
 import RateTrendChart from './RateTrendChart'
 
 function CurrencyDetail() {
@@ -19,7 +20,7 @@ function CurrencyDetail() {
   const isUp = currency.change.startsWith('+')
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <Header backTo="/search" />
 
       <main className="flex-1 px-4 pb-28">
@@ -61,14 +62,23 @@ function CurrencyDetail() {
           </h2>
           <ul className="mt-1">
             {BRANCHES.map((branch) => (
-              <BranchRow key={branch.id} branch={branch} />
+              <ListRowLink
+                key={branch.id}
+                to={`/branch/${branch.id}`}
+                className="py-2.5"
+                title={branch.name}
+                subtitle={branch.distance}
+                right={
+                  <span className="text-[13px] font-bold text-gray-900">{branch.listRate}</span>
+                }
+              />
             ))}
           </ul>
         </section>
       </main>
 
       <BottomNav active="exchange" />
-    </div>
+    </PageLayout>
   )
 }
 

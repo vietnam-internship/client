@@ -1,6 +1,8 @@
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '@/components/Header'
+import PageLayout from '@/components/PageLayout'
+import ProfileCard from '@/components/ProfileCard'
 
 interface RegisterProps {
   onComplete: () => void
@@ -16,7 +18,7 @@ function Register({ onComplete }: RegisterProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
+    <PageLayout>
       <Header />
 
       <main className="flex-1 px-4">
@@ -25,13 +27,7 @@ function Register({ onComplete }: RegisterProps) {
           Enter your details to get started with TravelX
         </p>
 
-        <section className="mt-6 flex items-center gap-3 rounded-xl bg-gray-100 px-4 py-3.5">
-          <span className="h-9 w-9 shrink-0 rounded-full bg-blue-200" />
-          <div>
-            <p className="text-[14px] font-bold text-gray-900">Signed in with Google</p>
-            <p className="text-[13px] text-gray-600">john.doe@gmail.com</p>
-          </div>
-        </section>
+        <ProfileCard className="mt-6" title="Signed in with Google" email="john.doe@gmail.com" />
 
         <form onSubmit={handleSubmit} className="mt-9">
           <label className="block">
@@ -86,7 +82,7 @@ function Register({ onComplete }: RegisterProps) {
           </button>
         </form>
       </main>
-    </div>
+    </PageLayout>
   )
 }
 
