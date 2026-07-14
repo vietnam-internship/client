@@ -71,6 +71,30 @@ export const TrendDownIcon = createIcon(
   </>,
 )
 
+export const ArrowLeftIcon = createIcon(
+  <>
+    <path d="M19 12H5" />
+    <path d="m12 19-7-7 7-7" />
+  </>,
+)
+
+export const CalendarIcon = createIcon(
+  <>
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <path d="M16 2v4" />
+    <path d="M8 2v4" />
+    <path d="M3 10h18" />
+  </>,
+)
+
+export const LogoutIcon = createIcon(
+  <>
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <path d="m16 17 5-5-5-5" />
+    <path d="M21 12H9" />
+  </>,
+)
+
 export const ClockIcon = createIcon(
   <>
     <circle cx="12" cy="12" r="10" />
