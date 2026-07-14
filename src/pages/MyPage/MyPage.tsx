@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav'
 import Header from '../../components/Header'
 import { CalendarIcon, LogoutIcon } from '../../components/icons'
@@ -8,6 +9,8 @@ interface MyPageProps {
 }
 
 function MyPage({ onLogout }: MyPageProps) {
+  const navigate = useNavigate()
+
   return (
     <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white">
       <Header backTo="/" />
@@ -28,11 +31,13 @@ function MyPage({ onLogout }: MyPageProps) {
             Icon={CalendarIcon}
             title="My Reservation"
             description="Check my reservation"
+            onClick={() => navigate('/mypage/reservations')}
           />
           <MenuCard
             Icon={CalendarIcon}
             title="Exchange history"
             description="Check my history"
+            onClick={() => navigate('/mypage/history')}
           />
         </div>
 

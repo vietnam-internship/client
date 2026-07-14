@@ -95,6 +95,34 @@ export const LogoutIcon = createIcon(
   </>,
 )
 
+export const ArrowRightIcon = createIcon(
+  <>
+    <path d="M5 12h14" />
+    <path d="m12 5 7 7-7 7" />
+  </>,
+)
+
+export const ChevronRightIcon = createIcon(<path d="m9 18 6-6-6-6" />)
+
+export const XIcon = createIcon(
+  <>
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </>,
+)
+
+export const QrCodeIcon = createIcon(
+  <>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <path d="M14 14h3v3h-3z" />
+    <path d="M20 14h1v1h-1z" />
+    <path d="M14 20h1v1h-1z" />
+    <path d="M18 18h3v3h-3z" />
+  </>,
+)
+
 export const ClockIcon = createIcon(
   <>
     <circle cx="12" cy="12" r="10" />
