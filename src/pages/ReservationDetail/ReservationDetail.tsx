@@ -1,10 +1,10 @@
-import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { ArrowRightIcon, QrCodeIcon } from '@/components/icons'
 import { findReservation } from '@/data/reservations'
+import useDisclosure from '@/hooks/useDisclosure'
 import CancelDialog from './CancelDialog'
 import InfoCard from '@/components/InfoCard'
 
@@ -16,7 +16,7 @@ const STATUS_MESSAGES = {
 function ReservationDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [isCancelOpen, setIsCancelOpen] = useState(false)
+  const cancelDialog = useDisclosure()
   const reservation = findReservation(id)
 
   if (!reservation) {
@@ -64,7 +64,7 @@ function ReservationDetail() {
 
             <button
               type="button"
-              onClick={() => setIsCancelOpen(true)}
+              onClick={cancelDialog.open}
               className="mt-6 h-12 w-full cursor-pointer rounded-xl border border-gray-200 bg-white text-[14px] font-bold text-red-600 transition-colors hover:bg-red-50"
             >
               Cancel reservation
@@ -77,9 +77,9 @@ function ReservationDetail() {
         )}
       </main>
 
-      {isCancelOpen && (
+      {cancelDialog.isOpen && (
         <CancelDialog
-          onKeep={() => setIsCancelOpen(false)}
+          onKeep={cancelDialog.close}
           onCancel={() => navigate(`/mypage/reservations/${reservation.id}/cancelled`)}
         />
       )}

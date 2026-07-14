@@ -1,10 +1,10 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import NotificationPanel, { type Notification } from '@/components/NotificationPanel'
 import PageLayout from '@/components/PageLayout'
 import { BellIcon, SearchIcon } from '@/components/icons'
+import useDisclosure from '@/hooks/useDisclosure'
 import AiReportCard from './AiReportCard'
 import PickupCard from './PickupCard'
 import RateCard, { type Rate } from './RateCard'
@@ -35,7 +35,7 @@ const RATES: Rate[] = [
 
 function Home() {
   const navigate = useNavigate()
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const notification = useDisclosure()
 
   return (
     <PageLayout className="relative">
@@ -44,7 +44,7 @@ function Home() {
           <button
             type="button"
             aria-label="Notifications"
-            onClick={() => setIsNotificationOpen((open) => !open)}
+            onClick={notification.toggle}
             className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-800 transition-colors hover:bg-gray-200"
           >
             <BellIcon className="h-[18px] w-[18px]" />
@@ -53,11 +53,8 @@ function Home() {
         }
       />
 
-      {isNotificationOpen && (
-        <NotificationPanel
-          notifications={NOTIFICATIONS}
-          onClose={() => setIsNotificationOpen(false)}
-        />
+      {notification.isOpen && (
+        <NotificationPanel notifications={NOTIFICATIONS} onClose={notification.close} />
       )}
 
       <main className="flex-1 px-4 pb-28">

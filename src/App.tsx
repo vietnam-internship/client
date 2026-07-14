@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import useAuth from '@/hooks/useAuth'
 import BranchDetail from '@/pages/BranchDetail'
 import CurrencyDetail from '@/pages/CurrencyDetail'
 import ExchangeHistory from '@/pages/ExchangeHistory'
@@ -16,22 +17,8 @@ import PickupDetails from '@/pages/Reserve/PickupDetails'
 import ReviewReservation from '@/pages/Reserve/ReviewReservation'
 import ReservationComplete from '@/pages/Reserve/ReservationComplete'
 
-const AUTH_KEY = 'travelx.loggedIn'
-
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    () => localStorage.getItem(AUTH_KEY) === 'true',
-  )
-
-  const handleLogin = () => {
-    localStorage.setItem(AUTH_KEY, 'true')
-    setIsLoggedIn(true)
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem(AUTH_KEY)
-    setIsLoggedIn(false)
-  }
+  const { isLoggedIn, login, logout } = useAuth()
 
   const requireAuth = (element: ReactNode) =>
     isLoggedIn ? element : <Navigate to="/login" replace />
@@ -44,8 +31,8 @@ function App() {
           path="/login"
           element={isLoggedIn ? <Navigate to="/" replace /> : <Login />}
         />
-        <Route path="/register" element={<Register onComplete={handleLogin} />} />
-        <Route path="/mypage" element={requireAuth(<MyPage onLogout={handleLogout} />)} />
+        <Route path="/register" element={<Register onComplete={login} />} />
+        <Route path="/mypage" element={requireAuth(<MyPage onLogout={logout} />)} />
         <Route path="/mypage/reservations" element={requireAuth(<MyReservation />)} />
         <Route path="/mypage/reservations/:id" element={requireAuth(<ReservationDetail />)} />
         <Route

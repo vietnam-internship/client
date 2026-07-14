@@ -5,31 +5,12 @@ import ListRowLink from '@/components/ListRowLink'
 import PageLayout from '@/components/PageLayout'
 import { ArrowLeftIcon, ChevronRightIcon, SearchIcon } from '@/components/icons'
 import { CURRENCIES } from '@/data/currencies'
+import useRecentSearches from '@/hooks/useRecentSearches'
 import RecentSearches from './RecentSearches'
-
-const RECENT_KEY = 'travelx.recentSearches'
-
-function loadRecent(): string[] {
-  const saved = localStorage.getItem(RECENT_KEY)
-  return saved ? JSON.parse(saved) : ['USD', 'VND']
-}
-
-function saveRecent(items: string[]) {
-  localStorage.setItem(RECENT_KEY, JSON.stringify(items))
-}
 
 function Search() {
   const [query, setQuery] = useState('')
-  const [recent, setRecent] = useState<string[]>(loadRecent)
-
-  const updateRecent = (items: string[]) => {
-    setRecent(items)
-    saveRecent(items)
-  }
-
-  const addRecent = (code: string) => {
-    updateRecent([code, ...recent.filter((item) => item !== code)])
-  }
+  const { recent, addRecent, removeRecent, clearRecent } = useRecentSearches()
 
   const normalized = query.trim().toLowerCase()
   const results = normalized
@@ -62,11 +43,7 @@ function Search() {
       <main className="flex-1 px-4 pb-28">
         {!normalized && (
           <div className="mt-6">
-            <RecentSearches
-              items={recent}
-              onRemove={(code) => updateRecent(recent.filter((item) => item !== code))}
-              onClear={() => updateRecent([])}
-            />
+            <RecentSearches items={recent} onRemove={removeRecent} onClear={clearRecent} />
           </div>
         )}
 

@@ -5,6 +5,7 @@ import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { ArrowUpDownIcon } from '@/components/icons'
 import { findPickupLocation } from '@/data/offices'
+import useCurrencyConverter from '@/hooks/useCurrencyConverter'
 import AmountField from './AmountField'
 
 const DATES = [
@@ -19,49 +20,31 @@ const DATES = [
 
 const TIME_SLOTS = ['10:00', '12:00', '14:00']
 
-/** Mock rate: 100 VND = 5.79 KRW */
-const KRW_PER_100_VND = 5.79
-
-const formatNumber = (value: number) => Math.round(value).toLocaleString('en-US')
-
-const parseAmount = (value: string) => Number(value.replace(/[^0-9]/g, '')) || 0
-
 function PickupDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [date, setDate] = useState(25)
   const [time, setTime] = useState('12:00')
-  const [swapped, setSwapped] = useState(false)
-  const [input, setInput] = useState('')
+  const { input, swapped, toggleSwapped, handleAmountChange, krw, vnd } = useCurrencyConverter()
 
   const location = findPickupLocation(id)
   if (!location) {
     return <Navigate to="/maps" replace />
   }
 
-  const amount = parseAmount(input)
-  // The outlined bottom field is the editable one: VND by default, KRW when swapped
-  const krw = swapped ? amount : (amount * KRW_PER_100_VND) / 100
-  const vnd = swapped ? (amount * 100) / KRW_PER_100_VND : amount
-
-  const handleAmountChange = (value: string) => {
-    const parsed = parseAmount(value)
-    setInput(parsed ? formatNumber(parsed) : '')
-  }
-
   const handleContinue = () => {
     navigate(`/reserve/${id}/review`, {
       state: {
         dateTime: `Oct ${date}, 2026 · ${time}`,
-        fromAmount: `${formatNumber(krw)} KRW`,
-        toAmount: `${formatNumber(vnd)} VND`,
+        fromAmount: `${krw} KRW`,
+        toAmount: `${vnd} VND`,
       },
     })
   }
 
   const fields = [
-    { flag: '🇰🇷', label: 'Korean won', unit: 'KRW', amount: formatNumber(krw) },
-    { flag: '🇻🇳', label: 'Vietnamese dong', unit: 'VND', amount: formatNumber(vnd) },
+    { flag: '🇰🇷', label: 'Korean won', unit: 'KRW', amount: krw },
+    { flag: '🇻🇳', label: 'Vietnamese dong', unit: 'VND', amount: vnd },
   ]
   if (swapped) fields.reverse()
 
@@ -125,7 +108,7 @@ function PickupDetails() {
             <button
               type="button"
               aria-label="Swap currencies"
-              onClick={() => setSwapped((s) => !s)}
+              onClick={toggleSwapped}
               className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-primary text-white ring-4 ring-white transition-opacity hover:opacity-90"
             >
               <ArrowUpDownIcon className="h-3.5 w-3.5" />
