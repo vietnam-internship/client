@@ -45,7 +45,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'VND',
-    name: 'Vietnames dong',
+    name: 'Vietnamese dong',
     pair: 'VND / KRW',
     rate: '0.0532',
     change: '+0.0002 (0.38%)',
