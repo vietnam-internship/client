@@ -5,7 +5,7 @@ import Header from '@/components/Header'
 import { ArrowRightIcon, QrCodeIcon } from '@/components/icons'
 import { findReservation } from '@/data/reservations'
 import CancelDialog from './CancelDialog'
-import InfoCard from './InfoCard'
+import InfoCard from '@/components/InfoCard'
 
 const STATUS_MESSAGES = {
   completed: 'This exchange has been completed.',

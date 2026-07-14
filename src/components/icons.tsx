@@ -123,6 +123,24 @@ export const QrCodeIcon = createIcon(
   </>,
 )
 
+export const ArrowUpDownIcon = createIcon(
+  <>
+    <path d="m21 16-4 4-4-4" />
+    <path d="M17 20V4" />
+    <path d="m3 8 4-4 4 4" />
+    <path d="M7 4v16" />
+  </>,
+)
+
+export const CheckIcon = createIcon(<path d="M20 6 9 17l-5-5" />)
+
+export const GaugeIcon = createIcon(
+  <>
+    <path d="m12 14 4-4" />
+    <path d="M3.34 19a10 10 0 1 1 17.32 0" />
+  </>,
+)
+
 export const ClockIcon = createIcon(
   <>
     <circle cx="12" cy="12" r="10" />
