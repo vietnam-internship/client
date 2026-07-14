@@ -1,3 +1,4 @@
+import { Link, useNavigate } from 'react-router-dom'
 import txLogo from '../../assets/tx_logo.svg'
 
 function GoogleIcon() {
@@ -29,6 +30,8 @@ function GoogleIcon() {
 }
 
 function Login() {
+  const navigate = useNavigate()
+
   return (
     <div className="relative mx-auto flex w-full max-w-[393px] flex-1 flex-col bg-white text-center">
       <header className="absolute top-0 left-0 p-4">
@@ -47,6 +50,7 @@ function Login() {
 
         <button
           type="button"
+          onClick={() => navigate('/register')}
           className="mt-11 flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border border-gray-200 bg-white text-[15px] font-semibold text-gray-700 transition-colors hover:bg-gray-50"
         >
           <GoogleIcon />
@@ -55,9 +59,9 @@ function Login() {
 
         <p className="mt-7 text-[13px] text-gray-500">
           Don&apos;t have an account?{' '}
-          <a href="#" className="font-bold text-blue-700 hover:underline">
+          <Link to="/register" className="font-bold text-blue-700 hover:underline">
             Sign up for TravelX
-          </a>
+          </Link>
         </p>
 
         <p className="mt-3.5 text-[11px] text-gray-400">🔒 Bank-level security</p>
