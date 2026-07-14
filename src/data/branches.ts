@@ -3,6 +3,7 @@ export interface Branch {
   name: string
   distance: string
   address: string
+  boothDetail: string
   openUntil: string
   feeNote: string
   listRate: string
@@ -16,6 +17,7 @@ export const BRANCHES: Branch[] = [
     name: 'TravelX Myeongdong',
     distance: '250m',
     address: '26-28 Myeongdong-gil, Jung-gu, Seoul',
+    boothDetail: '2F, Departure hall, TravelX booth',
     openUntil: 'Open until 21:00',
     feeNote: 'No fee under $500',
     listRate: '1,342.10',
@@ -34,6 +36,7 @@ export const BRANCHES: Branch[] = [
     name: 'Gangnam branch',
     distance: '5.4 km',
     address: '152 Teheran-ro, Gangnam-gu, Seoul',
+    boothDetail: '1F, Lobby, TravelX booth',
     openUntil: 'Open until 20:00',
     feeNote: 'No fee under $300',
     listRate: '1,343.20',
@@ -52,6 +55,7 @@ export const BRANCHES: Branch[] = [
     name: 'Incheon Airport T1',
     distance: '10 km',
     address: '272 Gonghang-ro, Jung-gu, Incheon',
+    boothDetail: '3F, Gate G, TravelX booth',
     openUntil: 'Open until 22:00',
     feeNote: 'No fee under $500',
     listRate: '1,354.50',
@@ -70,6 +74,7 @@ export const BRANCHES: Branch[] = [
     name: 'TravelX Airport',
     distance: '8 km',
     address: '221 Haneul-gil, Gangseo-gu, Seoul',
+    boothDetail: '2F, Arrival hall, TravelX booth',
     openUntil: 'Open until 21:30',
     feeNote: 'No fee under $500',
     listRate: '1,358.50',

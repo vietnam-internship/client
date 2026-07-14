@@ -1,4 +1,4 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import { MapPinIcon } from '@/components/icons'
@@ -6,6 +6,7 @@ import { findBranch } from '@/data/branches'
 
 function BranchDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const branch = findBranch(id)
 
   if (!branch) {
@@ -68,6 +69,7 @@ function BranchDetail() {
 
         <button
           type="button"
+          onClick={() => navigate(`/reserve/${branch.id}`)}
           className="mt-6 h-11 w-full cursor-pointer rounded-xl bg-primary text-[14px] font-bold text-white transition-opacity hover:opacity-90"
         >
           Reserve now

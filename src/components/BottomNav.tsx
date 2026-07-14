@@ -3,7 +3,7 @@ import { ExchangeIcon, HomeIcon, MapPinIcon, ProfileIcon } from './icons'
 
 const TABS = [
   { key: 'home', label: 'Home', Icon: HomeIcon, to: '/' },
-  { key: 'maps', label: 'Maps', Icon: MapPinIcon, to: null },
+  { key: 'maps', label: 'Maps', Icon: MapPinIcon, to: '/maps' },
   { key: 'exchange', label: 'Exchange', Icon: ExchangeIcon, to: null },
   { key: 'profile', label: 'Profile', Icon: ProfileIcon, to: '/mypage' },
 ] as const
