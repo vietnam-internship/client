@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import NotificationPanel, { type Notification } from '@/components/NotificationPanel'
@@ -32,6 +33,7 @@ const RATES: Rate[] = [
 ]
 
 function Home() {
+  const navigate = useNavigate()
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
 
   return (
@@ -74,8 +76,11 @@ function Home() {
             <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="search"
+              readOnly
+              onFocus={() => navigate('/search')}
+              onClick={() => navigate('/search')}
               placeholder="Search a country or currency"
-              className="h-10 w-full rounded-lg border border-gray-200 pr-3 pl-9 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none"
+              className="h-10 w-full cursor-pointer rounded-lg border border-gray-200 pr-3 pl-9 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none"
             />
           </div>
 

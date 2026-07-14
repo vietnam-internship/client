@@ -1,7 +1,10 @@
 import { useState, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import BranchDetail from '@/pages/BranchDetail'
+import CurrencyDetail from '@/pages/CurrencyDetail'
 import ExchangeHistory from '@/pages/ExchangeHistory'
 import Home from '@/pages/Home'
+import Search from '@/pages/Search'
 import Login from '@/pages/Login'
 import MyPage from '@/pages/MyPage'
 import MyReservation from '@/pages/MyReservation'
@@ -46,6 +49,9 @@ function App() {
           element={requireAuth(<ReservationCancelled />)}
         />
         <Route path="/mypage/history" element={requireAuth(<ExchangeHistory />)} />
+        <Route path="/search" element={requireAuth(<Search />)} />
+        <Route path="/currency/:code" element={requireAuth(<CurrencyDetail />)} />
+        <Route path="/branch/:id" element={requireAuth(<BranchDetail />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
