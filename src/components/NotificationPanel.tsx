@@ -1,13 +1,7 @@
-import type { ComponentType, SVGProps } from 'react'
+import type { IconComponent, Notification } from '@/types'
 import { ClockIcon, MapPinIcon, TrendDownIcon } from './icons'
 
-export interface Notification {
-  icon: 'trend' | 'clock' | 'pin'
-  title: string
-  description: string
-}
-
-const ICONS: Record<Notification['icon'], ComponentType<SVGProps<SVGSVGElement>>> = {
+const ICONS: Record<Notification['icon'], IconComponent> = {
   trend: TrendDownIcon,
   clock: ClockIcon,
   pin: MapPinIcon,

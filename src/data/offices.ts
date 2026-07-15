@@ -1,12 +1,6 @@
+import type { PickupOffice } from '@/types'
+import { findById } from '@/utils/collection'
 import { findBranch } from './branches'
-
-export interface PickupOffice {
-  id: string
-  name: string
-  openUntil: string
-  rate: string
-  locationDetail: string
-}
 
 export const PICKUP_OFFICES: PickupOffice[] = [
   {
@@ -34,7 +28,7 @@ export const PICKUP_OFFICES: PickupOffice[] = [
 
 /** Resolve a reservable pickup location from an office or branch id. */
 export function findPickupLocation(id: string | undefined) {
-  const office = PICKUP_OFFICES.find((o) => o.id === id)
+  const office = findById(PICKUP_OFFICES, id)
   if (office) return { name: office.name, detail: office.locationDetail }
 
   const branch = findBranch(id)

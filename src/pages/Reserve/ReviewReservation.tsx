@@ -6,12 +6,7 @@ import InfoCard from '@/components/InfoCard'
 import PageLayout from '@/components/PageLayout'
 import { ArrowRightIcon } from '@/components/icons'
 import { findPickupLocation } from '@/data/offices'
-
-export interface ReservationDraft {
-  dateTime: string
-  fromAmount: string
-  toAmount: string
-}
+import type { ReservationDraft } from '@/types'
 
 function ReviewReservation() {
   const { id } = useParams()

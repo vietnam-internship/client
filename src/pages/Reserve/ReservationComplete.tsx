@@ -4,7 +4,7 @@ import PageLayout from '@/components/PageLayout'
 import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { CheckIcon } from '@/components/icons'
 import { findPickupLocation } from '@/data/offices'
-import type { ReservationDraft } from './ReviewReservation'
+import type { ReservationDraft } from '@/types'
 import QrPlaceholder from './QrPlaceholder'
 
 type CompleteState = ReservationDraft & { reservationNumber: string }

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { GaugeIcon } from '@/components/icons'
-import type { PickupOffice } from '@/data/offices'
+import type { PickupOffice } from '@/types'
 
 function OfficeRow({ office }: { office: PickupOffice }) {
   return (

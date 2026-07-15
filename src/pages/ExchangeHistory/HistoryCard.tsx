@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRightIcon, ChevronRightIcon } from '@/components/icons'
-import type { Reservation } from '@/data/reservations'
+import type { Reservation } from '@/types'
 
 function HistoryCard({ reservation }: { reservation: Reservation }) {
   return (

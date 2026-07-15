@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
-import NotificationPanel, { type Notification } from '@/components/NotificationPanel'
+import NotificationPanel from '@/components/NotificationPanel'
 import PageLayout from '@/components/PageLayout'
 import { BellIcon, SearchIcon } from '@/components/icons'
 import useDisclosure from '@/hooks/useDisclosure'
+import type { Notification, Rate } from '@/types'
 import AiReportCard from './AiReportCard'
 import PickupCard from './PickupCard'
-import RateCard, { type Rate } from './RateCard'
+import RateCard from './RateCard'
 
 const NOTIFICATIONS: Notification[] = [
   {

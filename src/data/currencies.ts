@@ -1,13 +1,4 @@
-export interface Currency {
-  code: string
-  name: string
-  pair: string
-  rate: string
-  change: string
-  range: string
-  aiNote: string
-  trend: number[]
-}
+import type { Currency } from '@/types'
 
 export const CURRENCIES: Currency[] = [
   {

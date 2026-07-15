@@ -4,6 +4,7 @@ import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { ArrowUpDownIcon } from '@/components/icons'
+import { KRW_PER_100_VND } from '@/constants/exchange'
 import { findPickupLocation } from '@/data/offices'
 import useCurrencyConverter from '@/hooks/useCurrencyConverter'
 import AmountField from './AmountField'
@@ -99,7 +100,9 @@ function PickupDetails() {
 
         <section className="mt-8">
           <h2 className="text-[15px] font-bold text-gray-900">Enter amount</h2>
-          <p className="mt-1.5 text-[11px] text-gray-400">Rate: 100 VND = 5.79 KRW</p>
+          <p className="mt-1.5 text-[11px] text-gray-400">
+            Rate: 100 VND = {KRW_PER_100_VND} KRW
+          </p>
 
           <div className="mt-3">
             <AmountField {...fields[0]} />

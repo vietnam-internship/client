@@ -1,7 +1,7 @@
-import type { ComponentType, SVGProps } from 'react'
+import type { IconComponent } from '@/types'
 
 interface MenuCardProps {
-  Icon: ComponentType<SVGProps<SVGSVGElement>>
+  Icon: IconComponent
   title: string
   description: string
   onClick?: () => void

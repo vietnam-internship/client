@@ -1,9 +1,4 @@
-export interface Rate {
-  code: string
-  name: string
-  value: string
-  change: string
-}
+import type { Rate } from '@/types'
 
 function RateCard({ code, name, value, change }: Rate) {
   return (

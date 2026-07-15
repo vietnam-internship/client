@@ -1,11 +1,6 @@
 import { useState } from 'react'
-
-/** Mock rate: 100 VND = 5.79 KRW */
-const KRW_PER_100_VND = 5.79
-
-const formatNumber = (value: number) => Math.round(value).toLocaleString('en-US')
-
-const parseAmount = (value: string) => Number(value.replace(/[^0-9]/g, '')) || 0
+import { KRW_PER_100_VND } from '@/constants/exchange'
+import { formatNumber, parseAmount } from '@/utils/format'
 
 function useCurrencyConverter() {
   const [swapped, setSwapped] = useState(false)

@@ -5,13 +5,14 @@ import PageLayout from '@/components/PageLayout'
 import { ArrowRightIcon, QrCodeIcon } from '@/components/icons'
 import { findReservation } from '@/data/reservations'
 import useDisclosure from '@/hooks/useDisclosure'
+import type { HistoryStatus } from '@/types'
 import CancelDialog from './CancelDialog'
 import InfoCard from '@/components/InfoCard'
 
-const STATUS_MESSAGES = {
+const STATUS_MESSAGES: Record<HistoryStatus, string> = {
   completed: 'This exchange has been completed.',
   cancelled: 'This exchange has been cancelled.',
-} as const
+}
 
 function ReservationDetail() {
   const { id } = useParams()

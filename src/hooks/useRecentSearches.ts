@@ -1,14 +1,13 @@
 import { useState } from 'react'
-
-const RECENT_KEY = 'travelx.recentSearches'
+import { DEFAULT_RECENT_SEARCHES, RECENT_SEARCHES_KEY } from '@/constants/storage'
 
 function loadRecent(): string[] {
-  const saved = localStorage.getItem(RECENT_KEY)
-  return saved ? JSON.parse(saved) : ['USD', 'VND']
+  const saved = localStorage.getItem(RECENT_SEARCHES_KEY)
+  return saved ? JSON.parse(saved) : DEFAULT_RECENT_SEARCHES
 }
 
 function saveRecent(items: string[]) {
-  localStorage.setItem(RECENT_KEY, JSON.stringify(items))
+  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(items))
 }
 
 function useRecentSearches() {

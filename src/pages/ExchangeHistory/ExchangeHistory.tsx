@@ -3,13 +3,12 @@ import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { RESERVATIONS } from '@/data/reservations'
+import type { HistoryStatus } from '@/types'
 import HistoryCard from './HistoryCard'
 import SegmentedTabs from './SegmentedTabs'
 
-type HistoryTab = 'completed' | 'cancelled'
-
 function ExchangeHistory() {
-  const [tab, setTab] = useState<HistoryTab>('completed')
+  const [tab, setTab] = useState<HistoryStatus>('completed')
   const items = RESERVATIONS.filter((r) => r.status === tab)
 
   return (
