@@ -1,15 +1,5 @@
-export type ReservationStatus = 'active' | 'completed' | 'cancelled'
-
-export interface Reservation {
-  id: string
-  reservationNumber: string
-  location: string
-  locationDetail: string
-  dateTime: string
-  fromAmount: string
-  toAmount: string
-  status: ReservationStatus
-}
+import type { Reservation } from '@/types'
+import { findById } from '@/utils/collection'
 
 export const RESERVATIONS: Reservation[] = [
   {
@@ -75,5 +65,5 @@ export const RESERVATIONS: Reservation[] = [
 ]
 
 export function findReservation(id: string | undefined) {
-  return RESERVATIONS.find((reservation) => reservation.id === id)
+  return findById(RESERVATIONS, id)
 }

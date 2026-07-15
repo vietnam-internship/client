@@ -1,15 +1,5 @@
-export interface Branch {
-  id: string
-  name: string
-  distance: string
-  address: string
-  boothDetail: string
-  openUntil: string
-  feeNote: string
-  listRate: string
-  rates: { code: string; rate: string }[]
-  hours: { label: string; time: string }[]
-}
+import type { Branch } from '@/types'
+import { findById } from '@/utils/collection'
 
 export const BRANCHES: Branch[] = [
   {
@@ -91,5 +81,5 @@ export const BRANCHES: Branch[] = [
 ]
 
 export function findBranch(id: string | undefined) {
-  return BRANCHES.find((branch) => branch.id === id)
+  return findById(BRANCHES, id)
 }
