@@ -1,6 +1,6 @@
 import type { ComponentType, SVGProps } from 'react'
 
-/** Icon components from `@/components/common/icons`. */
+/** Icon components from `@/components/icons`. */
 export type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
 
 export interface Currency {
