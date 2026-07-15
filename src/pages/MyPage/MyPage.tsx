@@ -4,7 +4,7 @@ import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import ProfileCard from '@/components/ProfileCard'
 import { CalendarIcon, LogoutIcon } from '@/components/icons'
-import MenuCard from './MenuCard'
+import MenuCard from '@/pages/MyPage/components/MenuCard'
 
 interface MyPageProps {
   onLogout: () => void

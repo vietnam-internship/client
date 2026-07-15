@@ -8,7 +8,7 @@ import { ArrowRightIcon } from '@/components/icons'
 import { findPickupLocation } from '@/data/offices'
 import type { ReservationDraft } from '@/types'
 
-function ReviewReservation() {
+function ReviewReservationPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const draft = useLocation().state as ReservationDraft | null
@@ -64,4 +64,4 @@ function ReviewReservation() {
   )
 }
 
-export default ReviewReservation
+export default ReviewReservationPage

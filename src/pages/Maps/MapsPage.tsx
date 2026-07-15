@@ -2,10 +2,10 @@ import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { PICKUP_OFFICES } from '@/data/offices'
-import MapPlaceholder from './MapPlaceholder'
-import OfficeRow from './OfficeRow'
+import MapPlaceholder from '@/pages/Maps/components/MapPlaceholder'
+import OfficeRow from '@/pages/Maps/components/OfficeRow'
 
-function Maps() {
+function MapsPage() {
   return (
     <PageLayout>
       <Header />
@@ -42,4 +42,4 @@ function Maps() {
   )
 }
 
-export default Maps
+export default MapsPage

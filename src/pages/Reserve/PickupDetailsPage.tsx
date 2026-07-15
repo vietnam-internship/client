@@ -7,7 +7,7 @@ import { ArrowUpDownIcon } from '@/components/icons'
 import { KRW_PER_100_VND } from '@/constants/exchange'
 import { findPickupLocation } from '@/data/offices'
 import useCurrencyConverter from '@/hooks/useCurrencyConverter'
-import AmountField from './AmountField'
+import AmountField from '@/pages/Reserve/components/AmountField'
 
 const DATES = [
   { day: 'MON', date: 24 },
@@ -21,7 +21,7 @@ const DATES = [
 
 const TIME_SLOTS = ['10:00', '12:00', '14:00']
 
-function PickupDetails() {
+function PickupDetailsPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [date, setDate] = useState(25)
@@ -134,4 +134,4 @@ function PickupDetails() {
   )
 }
 
-export default PickupDetails
+export default PickupDetailsPage

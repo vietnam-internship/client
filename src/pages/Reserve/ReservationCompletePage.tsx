@@ -5,11 +5,11 @@ import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { CheckIcon } from '@/components/icons'
 import { findPickupLocation } from '@/data/offices'
 import type { ReservationDraft } from '@/types'
-import QrPlaceholder from './QrPlaceholder'
+import QrPlaceholder from '@/pages/Reserve/components/QrPlaceholder'
 
 type CompleteState = ReservationDraft & { reservationNumber: string }
 
-function ReservationComplete() {
+function ReservationCompletePage() {
   const { id } = useParams()
   const state = useLocation().state as CompleteState | null
   const location = findPickupLocation(id)
@@ -67,4 +67,4 @@ function ReservationComplete() {
   )
 }
 
-export default ReservationComplete
+export default ReservationCompletePage

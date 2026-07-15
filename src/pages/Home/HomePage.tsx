@@ -6,9 +6,9 @@ import PageLayout from '@/components/PageLayout'
 import { BellIcon, SearchIcon } from '@/components/icons'
 import useDisclosure from '@/hooks/useDisclosure'
 import type { Notification, Rate } from '@/types'
-import AiReportCard from './AiReportCard'
-import PickupCard from './PickupCard'
-import RateCard from './RateCard'
+import AiReportCard from '@/pages/Home/components/AiReportCard'
+import PickupCard from '@/pages/Home/components/PickupCard'
+import RateCard from '@/pages/Home/components/RateCard'
 
 const NOTIFICATIONS: Notification[] = [
   {
@@ -34,7 +34,7 @@ const RATES: Rate[] = [
   { code: 'EUR', name: 'Euro', value: '1,452.12', change: '-0.00' },
 ]
 
-function Home() {
+function HomePage() {
   const navigate = useNavigate()
   const notification = useDisclosure()
 
@@ -108,4 +108,4 @@ function Home() {
   )
 }
 
-export default Home
+export default HomePage

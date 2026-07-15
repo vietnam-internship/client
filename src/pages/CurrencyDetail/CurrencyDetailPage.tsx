@@ -6,10 +6,10 @@ import PageLayout from '@/components/PageLayout'
 import { ExchangeIcon } from '@/components/icons'
 import { BRANCHES } from '@/data/branches'
 import { findCurrency } from '@/data/currencies'
-import AiRecommendationCard from './AiRecommendationCard'
-import RateTrendChart from './RateTrendChart'
+import AiRecommendationCard from '@/pages/CurrencyDetail/components/AiRecommendationCard'
+import RateTrendChart from '@/pages/CurrencyDetail/components/RateTrendChart'
 
-function CurrencyDetail() {
+function CurrencyDetailPage() {
   const { code } = useParams()
   const currency = findCurrency(code)
 
@@ -82,4 +82,4 @@ function CurrencyDetail() {
   )
 }
 
-export default CurrencyDetail
+export default CurrencyDetailPage

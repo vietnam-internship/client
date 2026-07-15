@@ -4,11 +4,11 @@ import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import ProfileCard from '@/components/ProfileCard'
 
-interface RegisterProps {
+interface RegisterPageProps {
   onComplete: () => void
 }
 
-function Register({ onComplete }: RegisterProps) {
+function RegisterPage({ onComplete }: RegisterPageProps) {
   const navigate = useNavigate()
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -86,4 +86,4 @@ function Register({ onComplete }: RegisterProps) {
   )
 }
 
-export default Register
+export default RegisterPage

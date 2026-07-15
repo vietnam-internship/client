@@ -2,9 +2,9 @@ import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { RESERVATIONS } from '@/data/reservations'
-import ReservationListCard from './ReservationListCard'
+import ReservationListCard from '@/pages/MyReservation/components/ReservationListCard'
 
-function MyReservation() {
+function MyReservationPage() {
   const reservations = RESERVATIONS.filter((r) => r.status === 'active')
 
   return (
@@ -26,4 +26,4 @@ function MyReservation() {
   )
 }
 
-export default MyReservation
+export default MyReservationPage

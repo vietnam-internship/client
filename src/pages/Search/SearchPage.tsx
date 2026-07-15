@@ -6,9 +6,9 @@ import PageLayout from '@/components/PageLayout'
 import { ArrowLeftIcon, ChevronRightIcon, SearchIcon } from '@/components/icons'
 import { CURRENCIES } from '@/data/currencies'
 import useRecentSearches from '@/hooks/useRecentSearches'
-import RecentSearches from './RecentSearches'
+import RecentSearches from '@/pages/Search/components/RecentSearches'
 
-function Search() {
+function SearchPage() {
   const [query, setQuery] = useState('')
   const { recent, addRecent, removeRecent, clearRecent } = useRecentSearches()
 
@@ -70,4 +70,4 @@ function Search() {
   )
 }
 
-export default Search
+export default SearchPage

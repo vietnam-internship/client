@@ -5,7 +5,7 @@ import PageLayout from '@/components/PageLayout'
 import { MapPinIcon } from '@/components/icons'
 import { findBranch } from '@/data/branches'
 
-function BranchDetail() {
+function BranchDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const branch = findBranch(id)
@@ -82,4 +82,4 @@ function BranchDetail() {
   )
 }
 
-export default BranchDetail
+export default BranchDetailPage

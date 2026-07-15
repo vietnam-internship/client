@@ -30,7 +30,7 @@ function GoogleIcon() {
   )
 }
 
-function Login() {
+function LoginPage() {
   const navigate = useNavigate()
 
   return (
@@ -71,4 +71,4 @@ function Login() {
   )
 }
 
-export default Login
+export default LoginPage

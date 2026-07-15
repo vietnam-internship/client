@@ -4,10 +4,10 @@ import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { RESERVATIONS } from '@/data/reservations'
 import type { HistoryStatus } from '@/types'
-import HistoryCard from './HistoryCard'
-import SegmentedTabs from './SegmentedTabs'
+import HistoryCard from '@/pages/ExchangeHistory/components/HistoryCard'
+import SegmentedTabs from '@/pages/ExchangeHistory/components/SegmentedTabs'
 
-function ExchangeHistory() {
+function ExchangeHistoryPage() {
   const [tab, setTab] = useState<HistoryStatus>('completed')
   const items = RESERVATIONS.filter((r) => r.status === tab)
 
@@ -44,4 +44,4 @@ function ExchangeHistory() {
   )
 }
 
-export default ExchangeHistory
+export default ExchangeHistoryPage

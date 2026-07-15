@@ -6,7 +6,7 @@ import { ArrowRightIcon, QrCodeIcon } from '@/components/icons'
 import { findReservation } from '@/data/reservations'
 import useDisclosure from '@/hooks/useDisclosure'
 import type { HistoryStatus } from '@/types'
-import CancelDialog from './CancelDialog'
+import CancelDialog from '@/pages/ReservationDetail/components/CancelDialog'
 import InfoCard from '@/components/InfoCard'
 
 const STATUS_MESSAGES: Record<HistoryStatus, string> = {
@@ -14,7 +14,7 @@ const STATUS_MESSAGES: Record<HistoryStatus, string> = {
   cancelled: 'This exchange has been cancelled.',
 }
 
-function ReservationDetail() {
+function ReservationDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const cancelDialog = useDisclosure()
@@ -90,4 +90,4 @@ function ReservationDetail() {
   )
 }
 
-export default ReservationDetail
+export default ReservationDetailPage

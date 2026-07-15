@@ -7,7 +7,7 @@ import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { XIcon } from '@/components/icons'
 import { findReservation } from '@/data/reservations'
 
-function ReservationCancelled() {
+function ReservationCancelledPage() {
   const { id } = useParams()
   const reservation = findReservation(id)
 
@@ -64,4 +64,4 @@ function ReservationCancelled() {
   )
 }
 
-export default ReservationCancelled
+export default ReservationCancelledPage
