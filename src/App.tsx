@@ -19,7 +19,7 @@ import ReviewReservationPage from '@/pages/Reserve/ReviewReservationPage'
 import ReservationCompletePage from '@/pages/Reserve/ReservationCompletePage'
 
 function App() {
-  const { isLoggedIn, login, logout } = useAuth()
+  const { isLoggedIn, user, login, logout } = useAuth()
 
   const requireAuth = (element: ReactNode) =>
     isLoggedIn ? element : <Navigate to="/login" replace />
@@ -34,7 +34,7 @@ function App() {
         />
         <Route path="/auth/callback" element={<AuthCallbackPage onLogin={login} />} />
         <Route path="/register" element={requireAuth(<RegisterPage />)} />
-        <Route path="/mypage" element={requireAuth(<MyPage onLogout={logout} />)} />
+        <Route path="/mypage" element={requireAuth(<MyPage user={user} onLogout={logout} />)} />
         <Route path="/mypage/reservations" element={requireAuth(<MyReservationPage />)} />
         <Route
           path="/mypage/reservations/:id"
