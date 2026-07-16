@@ -22,7 +22,6 @@ function useAuth() {
   }
 
   const logout = () => {
-    // Revoke on the server first — the request reads the token before it is cleared
     logoutRequest().catch(() => {})
     localStorage.removeItem(ACCESS_TOKEN_KEY)
     localStorage.removeItem(AUTH_USER_KEY)

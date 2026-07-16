@@ -12,18 +12,15 @@ interface AuthCallbackPageProps {
 function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  // The authorization code is single-use, so guard against duplicate effect runs
   const startedRef = useRef(false)
 
   useEffect(() => {
     if (startedRef.current) return
     startedRef.current = true
 
-    // Consume (and clear) the stashed state up front regardless of outcome,
-    // so a stale/leftover value can never be reused by a later attempt.
     const returnedState = searchParams.get('state')
     const storedState = consumeStoredOAuthState()
-
+    // state : CSRF 방지를 위한 값으로 로그인 시작 시 저장해둔 값(consumeStoredOAuthState())과 일치하는지 검증
     if (!returnedState || !storedState || returnedState !== storedState) {
       navigate('/login', { replace: true })
       return
@@ -34,7 +31,7 @@ function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
       navigate('/login', { replace: true })
       return
     }
-
+    // 신규 유저
     exchangeGoogleCode(code)
       .then((session) => {
         onLogin(session)
