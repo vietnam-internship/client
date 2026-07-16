@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import useAuth from '@/hooks/useAuth'
+import AuthCallbackPage from '@/pages/AuthCallback/AuthCallbackPage'
 import BranchDetailPage from '@/pages/BranchDetail/BranchDetailPage'
 import CurrencyDetailPage from '@/pages/CurrencyDetail/CurrencyDetailPage'
 import ExchangeHistoryPage from '@/pages/ExchangeHistory/ExchangeHistoryPage'
@@ -31,7 +32,8 @@ function App() {
           path="/login"
           element={isLoggedIn ? <Navigate to="/" replace /> : <LoginPage />}
         />
-        <Route path="/register" element={<RegisterPage onComplete={login} />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage onLogin={login} />} />
+        <Route path="/register" element={requireAuth(<RegisterPage />)} />
         <Route path="/mypage" element={requireAuth(<MyPage onLogout={logout} />)} />
         <Route path="/mypage/reservations" element={requireAuth(<MyReservationPage />)} />
         <Route
