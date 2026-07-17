@@ -1,5 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom'
 import PageLayout from '@/components/PageLayout'
+import { API_BASE_URL } from '@/constants/api'
+import { createOAuthState } from '@/utils/oauth'
 import txLogo from '@/assets/tx_logo.svg'
 
 function GoogleIcon() {
@@ -31,7 +32,14 @@ function GoogleIcon() {
 }
 
 function LoginPage() {
-  const navigate = useNavigate()
+  const handleGoogleLogin = () => {
+    // Generate a CSRF state, stash it, and hand it to the backend so it can be
+    // relayed to Google and echoed back on /auth/callback for verification.
+    const state = createOAuthState()
+
+    // Full-page redirect to the backend's OAuth2 entry point (Spring Security standard)
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google?state=${encodeURIComponent(state)}`
+  }
 
   return (
     <PageLayout className="relative text-center">
@@ -51,7 +59,7 @@ function LoginPage() {
 
         <button
           type="button"
-          onClick={() => navigate('/register')}
+          onClick={handleGoogleLogin}
           className="mt-11 flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border border-gray-200 bg-white text-[15px] font-semibold text-gray-700 transition-colors hover:bg-gray-50"
         >
           <GoogleIcon />
@@ -60,9 +68,13 @@ function LoginPage() {
 
         <p className="mt-7 text-[13px] text-gray-500">
           Don&apos;t have an account?{' '}
-          <Link to="/register" className="font-bold text-blue-700 hover:underline">
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="cursor-pointer font-bold text-blue-700 hover:underline"
+          >
             Sign up for TravelX
-          </Link>
+          </button>
         </p>
 
         <p className="mt-3.5 text-[11px] text-gray-400">🔒 Bank-level security</p>

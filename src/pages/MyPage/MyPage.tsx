@@ -4,13 +4,15 @@ import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import ProfileCard from '@/components/ProfileCard'
 import { CalendarIcon, LogoutIcon } from '@/components/icons'
+import type { UserProfile } from '@/types'
 import MenuCard from '@/pages/MyPage/components/MenuCard'
 
 interface MyPageProps {
+  user: UserProfile | null
   onLogout: () => void
 }
 
-function MyPage({ onLogout }: MyPageProps) {
+function MyPage({ user, onLogout }: MyPageProps) {
   const navigate = useNavigate()
 
   return (
@@ -20,7 +22,7 @@ function MyPage({ onLogout }: MyPageProps) {
       <main className="flex-1 px-5 pb-28">
         <h1 className="mt-4 text-[16px] font-bold text-gray-900">MyPage</h1>
 
-        <ProfileCard className="mt-4" title="User" email="user@gmail.com" />
+        <ProfileCard className="mt-4" title={user?.name ?? 'User'} email={user?.email ?? ''} />
 
         <div className="mt-5 flex flex-col gap-3">
           <MenuCard

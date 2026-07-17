@@ -1,6 +1,15 @@
 import type { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import useAdminAuth from '@/hooks/useAdminAuth'
 import useAuth from '@/hooks/useAuth'
+import AdminDashboardPage from '@/pages/Admin/AdminDashboardPage'
+import AdminInventoryPage from '@/pages/Admin/AdminInventoryPage'
+import AdminLoginPage from '@/pages/Admin/AdminLoginPage'
+import AdminQrScanPage from '@/pages/Admin/AdminQrScanPage'
+import AdminRatesPage from '@/pages/Admin/AdminRatesPage'
+import AdminReservationsPage from '@/pages/Admin/AdminReservationsPage'
+import AdminSettingsPage from '@/pages/Admin/AdminSettingsPage'
+import AuthCallbackPage from '@/pages/AuthCallback/AuthCallbackPage'
 import BranchDetailPage from '@/pages/BranchDetail/BranchDetailPage'
 import CurrencyDetailPage from '@/pages/CurrencyDetail/CurrencyDetailPage'
 import ExchangeHistoryPage from '@/pages/ExchangeHistory/ExchangeHistoryPage'
@@ -18,10 +27,14 @@ import ReviewReservationPage from '@/pages/Reserve/ReviewReservationPage'
 import ReservationCompletePage from '@/pages/Reserve/ReservationCompletePage'
 
 function App() {
-  const { isLoggedIn, login, logout } = useAuth()
+  const { isLoggedIn, user, login, logout } = useAuth()
+  const admin = useAdminAuth()
 
   const requireAuth = (element: ReactNode) =>
     isLoggedIn ? element : <Navigate to="/login" replace />
+
+  const requireAdmin = (element: ReactNode) =>
+    admin.isLoggedIn ? element : <Navigate to="/admin/login" replace />
 
   return (
     <BrowserRouter>
@@ -31,8 +44,9 @@ function App() {
           path="/login"
           element={isLoggedIn ? <Navigate to="/" replace /> : <LoginPage />}
         />
-        <Route path="/register" element={<RegisterPage onComplete={login} />} />
-        <Route path="/mypage" element={requireAuth(<MyPage onLogout={logout} />)} />
+        <Route path="/auth/callback" element={<AuthCallbackPage onLogin={login} />} />
+        <Route path="/register" element={requireAuth(<RegisterPage />)} />
+        <Route path="/mypage" element={requireAuth(<MyPage user={user} onLogout={logout} />)} />
         <Route path="/mypage/reservations" element={requireAuth(<MyReservationPage />)} />
         <Route
           path="/mypage/reservations/:id"
@@ -53,6 +67,22 @@ function App() {
           path="/reserve/:id/complete"
           element={requireAuth(<ReservationCompletePage />)}
         />
+        <Route
+          path="/admin/login"
+          element={
+            admin.isLoggedIn ? (
+              <Navigate to="/admin" replace />
+            ) : (
+              <AdminLoginPage onLogin={admin.login} />
+            )
+          }
+        />
+        <Route path="/admin" element={requireAdmin(<AdminDashboardPage />)} />
+        <Route path="/admin/rates" element={requireAdmin(<AdminRatesPage />)} />
+        <Route path="/admin/inventory" element={requireAdmin(<AdminInventoryPage />)} />
+        <Route path="/admin/reservations" element={requireAdmin(<AdminReservationsPage />)} />
+        <Route path="/admin/qr-scan" element={requireAdmin(<AdminQrScanPage />)} />
+        <Route path="/admin/settings" element={requireAdmin(<AdminSettingsPage />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -3,6 +3,30 @@ import type { ComponentType, SVGProps } from 'react'
 /** Icon components from `@/components/icons`. */
 export type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
 
+export interface UserProfile {
+  id: number
+  name: string
+  email: string
+  phone: string | null
+  phoneVerified: boolean
+  role: string
+}
+
+/** Response of GET /auth/google/callback — JWT issued after Google OAuth2 login. */
+export interface GoogleLoginResponse {
+  accessToken: string
+  tokenType: string
+  expiresIn: number
+  isNewUser: boolean
+  user: UserProfile
+}
+
+/** Response of POST /auth/verify-phone (KYC step 1). */
+export interface PhoneVerificationResponse {
+  verified: boolean
+  expiresAt: string | null
+}
+
 export interface Currency {
   code: string
   name: string
