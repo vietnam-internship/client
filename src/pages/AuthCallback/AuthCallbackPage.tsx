@@ -2,13 +2,13 @@ import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { exchangeGoogleCode } from '@/api/auth'
 import PageLayout from '@/components/PageLayout'
-import { consumeStoredOAuthState } from '@/utils/oauth'
+import { consumeOAuthStarted } from '@/utils/oauth'
 import type { GoogleLoginResponse } from '@/types'
 
 interface AuthCallbackPageProps {
   onLogin: (session: GoogleLoginResponse) => void
 }
-
+// 리다이렉트시키는 중간 페이지
 function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -18,27 +18,21 @@ function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
     if (startedRef.current) return
     startedRef.current = true
 
-    const returnedState = searchParams.get('state')
-    const storedState = consumeStoredOAuthState()
-    // state : CSRF 방지를 위한 값으로 로그인 시작 시 저장해둔 값(consumeStoredOAuthState())과 일치하는지 검증
-    if (!returnedState || !storedState || returnedState !== storedState) {
-      navigate('/login', { replace: true })
-      return
-    }
-
+    // 이 탭에서 시작한 로그인 플로우인지 확인 (플래그는 읽는 즉시 소멸 — 재진입 방지)
     const code = searchParams.get('code')
-    if (!code) {
-      navigate('/login', { replace: true })
+    if (!consumeOAuthStarted() || !code) {
+      navigate('/login?error=oauth', { replace: true })
       return
     }
-    // 신규 유저
+    // 백엔드에 authorization code 보내 실제 accessToken으로 교환
     exchangeGoogleCode(code)
       .then((session) => {
         onLogin(session)
+        // 신규 유저는 프로필 완성(휴대폰 인증) 화면으로 유도
         navigate(session.isNewUser ? '/register' : '/', { replace: true })
       })
       .catch(() => {
-        navigate('/login', { replace: true })
+        navigate('/login?error=oauth', { replace: true })
       })
   }, [searchParams, navigate, onLogin])
 

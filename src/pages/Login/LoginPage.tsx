@@ -1,6 +1,7 @@
+import { useSearchParams } from 'react-router-dom'
 import PageLayout from '@/components/PageLayout'
 import { API_BASE_URL } from '@/constants/api'
-import { createOAuthState } from '@/utils/oauth'
+import { markOAuthStarted } from '@/utils/oauth'
 import txLogo from '@/assets/tx_logo.svg'
 
 function GoogleIcon() {
@@ -32,13 +33,20 @@ function GoogleIcon() {
 }
 
 function LoginPage() {
-  const handleGoogleLogin = () => {
-    // Generate a CSRF state, stash it, and hand it to the backend so it can be
-    // relayed to Google and echoed back on /auth/callback for verification.
-    const state = createOAuthState()
+  const [searchParams] = useSearchParams()
+  const errorParam = searchParams.get('error')
+  // oauth: 구글 로그인 플로우 실패 / session: 토큰 만료·무효로 401을 받아 로그아웃된 경우
+  const errorMessage =
+    errorParam === 'oauth'
+      ? 'Google 로그인에 실패했어요. 잠시 후 다시 시도해주세요.'
+      : errorParam === 'session'
+        ? '로그인이 만료됐어요. 다시 로그인해주세요.'
+        : null
 
-    // Full-page redirect to the backend's OAuth2 entry point (Spring Security standard)
-    window.location.href = `${API_BASE_URL}/oauth2/authorization/google?state=${encodeURIComponent(state)}`
+  const handleGoogleLogin = () => {
+    markOAuthStarted() // 진짜 내가 시작한 로그인 요청인지 구분
+    // 백엔드의 OAuth 엔드포인트로 이동
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`
   }
 
   return (
@@ -57,10 +65,16 @@ function LoginPage() {
           Your gateway to seamless global currency exchange
         </p>
 
+        {errorMessage && (
+          <p className="mt-8 w-full rounded-lg bg-red-50 px-4 py-3 text-[13px] text-red-600">
+            {errorMessage}
+          </p>
+        )}
+
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="mt-11 flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border border-gray-200 bg-white text-[15px] font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+          className={`${errorMessage ? 'mt-4' : 'mt-11'} flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border border-gray-200 bg-white text-[15px] font-semibold text-gray-700 transition-colors hover:bg-gray-50`}
         >
           <GoogleIcon />
           Continue with Google
