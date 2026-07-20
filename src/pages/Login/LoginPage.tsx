@@ -34,7 +34,14 @@ function GoogleIcon() {
 
 function LoginPage() {
   const [searchParams] = useSearchParams()
-  const hasOAuthError = searchParams.get('error') === 'oauth'
+  const errorParam = searchParams.get('error')
+  // oauth: 구글 로그인 플로우 실패 / session: 토큰 만료·무효로 401을 받아 로그아웃된 경우
+  const errorMessage =
+    errorParam === 'oauth'
+      ? 'Google 로그인에 실패했어요. 잠시 후 다시 시도해주세요.'
+      : errorParam === 'session'
+        ? '로그인이 만료됐어요. 다시 로그인해주세요.'
+        : null
 
   const handleGoogleLogin = () => {
     markOAuthStarted() // 진짜 내가 시작한 로그인 요청인지 구분
@@ -58,16 +65,16 @@ function LoginPage() {
           Your gateway to seamless global currency exchange
         </p>
 
-        {hasOAuthError && (
+        {errorMessage && (
           <p className="mt-8 w-full rounded-lg bg-red-50 px-4 py-3 text-[13px] text-red-600">
-            Google 로그인에 실패했어요. 잠시 후 다시 시도해주세요.
+            {errorMessage}
           </p>
         )}
 
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className={`${hasOAuthError ? 'mt-4' : 'mt-11'} flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border border-gray-200 bg-white text-[15px] font-semibold text-gray-700 transition-colors hover:bg-gray-50`}
+          className={`${errorMessage ? 'mt-4' : 'mt-11'} flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border border-gray-200 bg-white text-[15px] font-semibold text-gray-700 transition-colors hover:bg-gray-50`}
         >
           <GoogleIcon />
           Continue with Google

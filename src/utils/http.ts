@@ -25,7 +25,7 @@ function handleSessionExpired() {
   localStorage.removeItem(ACCESS_TOKEN_KEY)
   localStorage.removeItem(AUTH_USER_KEY)
   if (window.location.pathname !== '/login') {
-    window.location.href = '/login'
+    window.location.href = '/login?error=session'
   }
 }
 
