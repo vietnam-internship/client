@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { logoutRequest } from '@/api/auth'
+import { getMyProfile } from '@/api/user'
 import { ACCESS_TOKEN_KEY, AUTH_USER_KEY } from '@/constants/storage'
 import type { GoogleLoginResponse, UserProfile } from '@/types'
 
@@ -24,6 +25,24 @@ function useAuth() {
     localStorage.getItem(ACCESS_TOKEN_KEY), 
   )
   const [user, setUser] = useState<UserProfile | null>(loadUser)
+
+  // 로그인 상태면 GET /users/me로 프로필을 다시 받아와 localStorage 캐시를 서버와 동기화
+  // 401이면 http 래퍼가 세션 정리 후 /login으로
+  useEffect(() => {
+    if (!accessToken) return
+    let cancelled = false
+    getMyProfile()
+      .then((profile) => {
+        if (cancelled) return
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(profile))
+        setUser(profile)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [accessToken])
+
   // AuthCallbackPage에서 토큰 교환 성공 시 호출됨
   const login = (session: GoogleLoginResponse) => {
     localStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken)
