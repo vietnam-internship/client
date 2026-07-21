@@ -5,16 +5,18 @@ import BottomNav from '@/components/BottomNav'
 import ListRowLink from '@/components/ListRowLink'
 import PageLayout from '@/components/PageLayout'
 import { ArrowLeftIcon, ChevronRightIcon, SearchIcon } from '@/components/icons'
-import useRecentSearches from '@/hooks/useRecentSearches'
 import RecentSearches from '@/pages/Search/components/RecentSearches'
 import type { CurrencySummary } from '@/types'
 
 function SearchPage() {
   const [query, setQuery] = useState('')
-  const { recent, addRecent, removeRecent, clearRecent } = useRecentSearches()
 
   const [results, setResults] = useState<CurrencySummary[]>([])
   const [popular, setPopular] = useState<CurrencySummary[]>([])
+  // 로그인 사용자의 최근 검색 통화 — GET /currencies 응답의 recentSearches를 그대로 사용
+  const [recentSearches, setRecentSearches] = useState<CurrencySummary[]>([])
+  // 서버에 개별/전체 삭제 API가 없어, 삭제·전체 지우기는 이 화면에서만 숨김 처리한다
+  const [dismissedRecent, setDismissedRecent] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -30,6 +32,8 @@ function SearchPage() {
             if (cancelled) return
             setResults(data.results)
             setPopular(data.popularCurrencies ?? [])
+            // recentSearches는 q 미입력 시에만 내려옴 — 검색 중에는 이전 값을 유지
+            if (!normalized) setRecentSearches(data.recentSearches ?? [])
             setError(false)
           })
           .catch(() => {
@@ -49,6 +53,9 @@ function SearchPage() {
 
   // 검색어가 없으면 인기 통화(집계값, 없으면 전체 목록), 있으면 검색 결과
   const listed = normalized ? results : popular.length > 0 ? popular : results
+  const visibleRecent = recentSearches
+    .filter((currency) => !dismissedRecent.has(currency.code))
+    .map((currency) => currency.code)
 
   return (
     <PageLayout>
@@ -72,7 +79,13 @@ function SearchPage() {
       <main className="flex-1 px-4 pb-28">
         {!normalized && (
           <div className="mt-6">
-            <RecentSearches items={recent} onRemove={removeRecent} onClear={clearRecent} />
+            <RecentSearches
+              items={visibleRecent}
+              onRemove={(code) => setDismissedRecent((prev) => new Set(prev).add(code))}
+              onClear={() =>
+                setDismissedRecent(new Set(recentSearches.map((currency) => currency.code)))
+              }
+            />
           </div>
         )}
 
@@ -93,7 +106,6 @@ function SearchPage() {
               <ListRowLink
                 key={currency.code}
                 to={`/currency/${currency.code.toLowerCase()}`}
-                onClick={() => addRecent(currency.code)}
                 className="py-[11px]"
                 title={currency.code}
                 subtitle={currency.country}
