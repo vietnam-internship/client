@@ -29,8 +29,7 @@ function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
     exchangeGoogleCode(code)
       .then((session) => {
         onLogin(session)
-        // 신규 유저는 프로필 완성(휴대폰 인증) 화면으로 유도
-        navigate(session.isNewUser ? '/register' : '/', { replace: true })
+        navigate('/', { replace: true })
       })
       .catch(() => {
         navigate('/login?error=oauth', { replace: true })
