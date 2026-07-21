@@ -5,8 +5,15 @@ import { confirmPhoneCode, requestPhoneCode } from '@/api/auth'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import ProfileCard from '@/components/ProfileCard'
+import type { UserProfile } from '@/types'
 
-function RegisterPage() {
+interface RegisterPageProps {
+  user: UserProfile | null
+  /** 휴대폰 인증 성공 후 전역 프로필(phoneVerified 등)을 서버와 다시 동기화 */
+  onVerified: () => void
+}
+
+function RegisterPage({ user, onVerified }: RegisterPageProps) {
   const navigate = useNavigate()
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState('')
@@ -37,6 +44,7 @@ function RegisterPage() {
       const result = await confirmPhoneCode(phone, code)
       if (result.verified) {
         setVerified(true)
+        onVerified() // 전역 프로필의 phoneVerified를 서버 최신 상태로 동기화
       } else {
         setError('The verification code does not match.')
       }
@@ -63,7 +71,7 @@ function RegisterPage() {
           Enter your details to get started with TravelX
         </p>
 
-        <ProfileCard className="mt-6" title="Signed in with Google" email="john.doe@gmail.com" />
+        <ProfileCard className="mt-6" title="Signed in with Google" email={user?.email ?? ''} />
 
         <form onSubmit={handleSubmit} className="mt-9">
           <label className="block">
