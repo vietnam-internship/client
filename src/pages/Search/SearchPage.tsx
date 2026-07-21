@@ -1,25 +1,54 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { listCurrencies } from '@/api/currency'
 import BottomNav from '@/components/BottomNav'
 import ListRowLink from '@/components/ListRowLink'
 import PageLayout from '@/components/PageLayout'
 import { ArrowLeftIcon, ChevronRightIcon, SearchIcon } from '@/components/icons'
-import { CURRENCIES } from '@/data/currencies'
 import useRecentSearches from '@/hooks/useRecentSearches'
 import RecentSearches from '@/pages/Search/components/RecentSearches'
+import type { CurrencySummary } from '@/types'
 
 function SearchPage() {
   const [query, setQuery] = useState('')
   const { recent, addRecent, removeRecent, clearRecent } = useRecentSearches()
 
-  const normalized = query.trim().toLowerCase()
-  const results = normalized
-    ? CURRENCIES.filter(
-        (currency) =>
-          currency.code.toLowerCase().includes(normalized) ||
-          currency.name.toLowerCase().includes(normalized),
-      )
-    : CURRENCIES
+  const [results, setResults] = useState<CurrencySummary[]>([])
+  const [popular, setPopular] = useState<CurrencySummary[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  const normalized = query.trim()
+
+  // 입력이 멈춘 뒤 300ms 후에 검색 — 타이핑마다 요청하지 않도록 디바운스
+  useEffect(() => {
+    let cancelled = false
+    const timer = setTimeout(
+      () => {
+        listCurrencies(normalized || undefined)
+          .then((data) => {
+            if (cancelled) return
+            setResults(data.results)
+            setPopular(data.popularCurrencies ?? [])
+            setError(false)
+          })
+          .catch(() => {
+            if (!cancelled) setError(true)
+          })
+          .finally(() => {
+            if (!cancelled) setLoading(false)
+          })
+      },
+      normalized ? 300 : 0,
+    )
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [normalized])
+
+  // 검색어가 없으면 인기 통화(집계값, 없으면 전체 목록), 있으면 검색 결과
+  const listed = normalized ? results : popular.length > 0 ? popular : results
 
   return (
     <PageLayout>
@@ -50,19 +79,29 @@ function SearchPage() {
         <h2 className="mt-8 text-[15px] font-bold text-gray-900">
           {normalized ? 'Search results' : 'Popular currencies'}
         </h2>
-        <ul className="mt-2">
-          {results.map((currency) => (
-            <ListRowLink
-              key={currency.code}
-              to={`/currency/${currency.code.toLowerCase()}`}
-              onClick={() => addRecent(currency.code)}
-              className="py-[11px]"
-              title={currency.code}
-              subtitle={currency.name}
-              right={<ChevronRightIcon className="h-5 w-5 shrink-0 text-gray-300" />}
-            />
-          ))}
-        </ul>
+        {loading ? (
+          <p className="mt-4 text-[13px] text-gray-400">Loading currencies…</p>
+        ) : error ? (
+          <p className="mt-4 text-[13px] text-gray-400">
+            Couldn&apos;t load currencies. Please try again.
+          </p>
+        ) : listed.length === 0 ? (
+          <p className="mt-4 text-[13px] text-gray-400">No results found.</p>
+        ) : (
+          <ul className="mt-2">
+            {listed.map((currency) => (
+              <ListRowLink
+                key={currency.code}
+                to={`/currency/${currency.code.toLowerCase()}`}
+                onClick={() => addRecent(currency.code)}
+                className="py-[11px]"
+                title={currency.code}
+                subtitle={currency.country}
+                right={<ChevronRightIcon className="h-5 w-5 shrink-0 text-gray-300" />}
+              />
+            ))}
+          </ul>
+        )}
       </main>
 
       <BottomNav active="home" />

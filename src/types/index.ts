@@ -27,15 +27,50 @@ export interface PhoneVerificationResponse {
   expiresAt: string | null
 }
 
-export interface Currency {
+// Item of GET /currencies — 기준 환율은 외부 공공 API에서 일 1회 배치 수집.
+export interface CurrencySummary {
+  id: number
   code: string
-  name: string
-  pair: string
-  rate: string
-  change: string
-  range: string
-  aiNote: string
-  trend: number[]
+  country: string
+  buyRate: number
+  sellRate: number
+  updatedAt: string
+}
+
+// Response of GET /currencies — recent/popular은 q 미입력 시에만 내려옴. 
+export interface CurrencyListResponse {
+  results: CurrencySummary[]
+  recentSearches: CurrencySummary[] | null
+  popularCurrencies: CurrencySummary[] | null
+}
+
+// Response of GET /currencies/{code}.
+export interface CurrencyDetail extends CurrencySummary {
+  highVolatility: boolean
+}
+
+// Item of GET /currencies/{code}/history — 날짜 오름차순. 
+export interface RateHistoryEntry {
+  date: string
+  rate: number
+}
+
+/**
+ * NOW = 지금 환전 / WAIT = 대기 / NEUTRAL = 중립.
+ * COLLECTING_DATA = 이력 14일 미만 워밍업 상태(배지 미표시).
+ */
+export type TimingSignal = 'NOW' | 'WAIT' | 'NEUTRAL' | 'COLLECTING_DATA'
+
+// Response of GET /currencies/{code}/recommendation (AI 환전 타이밍 추천)
+export interface TimingRecommendation {
+  currencyCode: string
+  signal: TimingSignal
+  currentRate: number
+  predictedRate: number | null
+  highVolatility: boolean
+  fallbackUsed: boolean
+  explanation: { feature: string; contribution: number }[]
+  disclaimer: string
 }
 
 export interface Branch {
