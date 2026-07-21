@@ -44,9 +44,9 @@ function LoginPage() {
         : null
 
   const handleGoogleLogin = () => {
-    markOAuthStarted() // 진짜 내가 시작한 로그인 요청인지 구분
+    const state = markOAuthStarted() // CSRF 방지용 state 생성 — 콜백에서 이 값과 비교해 검증
     // 백엔드의 OAuth 엔드포인트로 이동
-    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google?state=${encodeURIComponent(state)}`
   }
 
   return (

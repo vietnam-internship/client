@@ -18,9 +18,10 @@ function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
     if (startedRef.current) return
     startedRef.current = true
 
-    // 이 탭에서 시작한 로그인 플로우인지 확인 (플래그는 읽는 즉시 소멸 — 재진입 방지)
+    // 이 탭에서 시작한 로그인 플로우인지 state로 검증 (저장된 값은 읽는 즉시 소멸 — 재진입 방지)
     const code = searchParams.get('code')
-    if (!consumeOAuthStarted() || !code) {
+    const state = searchParams.get('state')
+    if (!consumeOAuthStarted(state) || !code) {
       navigate('/login?error=oauth', { replace: true })
       return
     }
