@@ -121,14 +121,6 @@ export interface BranchDetail extends BranchSummary {
   currencies: BranchCurrencyRate[]
 }
 
-export interface PickupOffice {
-  id: string
-  name: string
-  openUntil: string
-  rate: string
-  locationDetail: string
-}
-
 /** UI 라벨: RESERVED=Upcoming, COMPLETED=Completed, CANCELLED=Cancelled. */
 export type ReservationStatus = 'RESERVED' | 'COMPLETED' | 'CANCELLED'
 
