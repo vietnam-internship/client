@@ -86,6 +86,41 @@ export interface Branch {
   hours: { label: string; time: string }[]
 }
 
+// Item of GET /branches — finalRate/preferentialRate는 currency 파라미터 전달 시에만 값이 옴.
+// finalRate는 백엔드 Currency 도메인 연동 전이라 현재 항상 null.
+export interface BranchSummary {
+  id: number
+  name: string
+  address: string
+  latitude: number
+  longitude: number
+  distanceKm: number | null
+  isOpenNow: boolean
+  finalRate: number | null
+  preferentialRate: number | null
+  reservationAvailable: boolean
+}
+
+// Item of BranchDetail.currencies — finalRate는 위와 동일한 이유로 현재 항상 null.
+export interface BranchCurrencyRate {
+  currencyCode: string
+  preferentialRate: number
+  finalRate: number | null
+  reservationOnlyStock: number
+  updatedAt: string
+}
+
+// Response of GET /branches/{id}
+export interface BranchDetail extends BranchSummary {
+  phone: string
+  businessHours: string
+  pickupLocationDetail: string
+  timeSlotCapacity: number
+  isBestRateNearby: boolean
+  active: boolean
+  currencies: BranchCurrencyRate[]
+}
+
 export interface PickupOffice {
   id: string
   name: string

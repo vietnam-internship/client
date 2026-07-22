@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
+import { listBranches } from '@/api/branch'
 import { getCurrency, getCurrencyHistory, getTimingRecommendation } from '@/api/currency'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import ListRowLink from '@/components/ListRowLink'
 import PageLayout from '@/components/PageLayout'
 import { ExchangeIcon } from '@/components/icons'
-import { BRANCHES } from '@/data/branches'
 import AiRecommendationCard from '@/pages/CurrencyDetail/components/AiRecommendationCard'
 import RateTrendChart from '@/pages/CurrencyDetail/components/RateTrendChart'
-import type { CurrencyDetail, RateHistoryEntry, TimingRecommendation } from '@/types'
+import type { BranchSummary, CurrencyDetail, RateHistoryEntry, TimingRecommendation } from '@/types'
 import { HttpError } from '@/utils/http'
 import { formatRate } from '@/utils/format'
 
@@ -53,6 +53,7 @@ type FetchResult =
       currency: CurrencyDetail
       history: RateHistoryEntry[]
       recommendation: TimingRecommendation | null
+      branches: BranchSummary[]
     }
   | { kind: 'notFound' }
   | { kind: 'error' }
@@ -66,15 +67,16 @@ function CurrencyDetailPage() {
   useEffect(() => {
     if (!code) return
     let cancelled = false
-    // 추천은 실패해도 페이지는 보여야 하므로(워밍업 등) 실패 시 null 처리
+    // 추천/지점 목록은 실패해도 페이지는 보여야 하므로 실패 시 각각 null/빈 배열 처리
     Promise.all([
       getCurrency(code),
       getCurrencyHistory(code, HISTORY_DAYS),
       getTimingRecommendation(code).catch(() => null),
+      listBranches({ currency: code, sort: 'RATE' }).catch(() => []),
     ])
-      .then(([currency, history, recommendation]) => {
+      .then(([currency, history, recommendation, branches]) => {
         if (cancelled) return
-        setFetched({ code, result: { kind: 'ready', currency, history, recommendation } })
+        setFetched({ code, result: { kind: 'ready', currency, history, recommendation, branches } })
       })
       .catch((err: unknown) => {
         if (cancelled) return
@@ -118,7 +120,7 @@ function CurrencyDetailPage() {
     )
   }
 
-  const { currency, history, recommendation } = result
+  const { currency, history, recommendation, branches } = result
   const change = formatChange(history)
   const rates = history.map((entry) => entry.rate)
   const range =
@@ -185,23 +187,27 @@ function CurrencyDetailPage() {
         </section>
 
         <section className="mt-6">
-          <h2 className="text-[14px] font-bold text-gray-900">
-            Recommended nearby branches by AI
-          </h2>
-          <ul className="mt-1">
-            {BRANCHES.map((branch) => (
-              <ListRowLink
-                key={branch.id}
-                to={`/branch/${branch.id}`}
-                className="py-2.5"
-                title={branch.name}
-                subtitle={branch.distance}
-                right={
-                  <span className="text-[13px] font-bold text-gray-900">{branch.listRate}</span>
-                }
-              />
-            ))}
-          </ul>
+          <h2 className="text-[14px] font-bold text-gray-900">Nearby branches</h2>
+          {branches.length === 0 ? (
+            <p className="mt-2 text-[12px] text-gray-400">No branches available yet.</p>
+          ) : (
+            <ul className="mt-1">
+              {branches.map((branch) => (
+                <ListRowLink
+                  key={branch.id}
+                  to={`/branch/${branch.id}`}
+                  className="py-2.5"
+                  title={branch.name}
+                  subtitle={branch.address}
+                  right={
+                    <span className="text-[13px] font-bold text-gray-900">
+                      {branch.finalRate !== null ? formatRate(branch.finalRate) : '-'}
+                    </span>
+                  }
+                />
+              ))}
+            </ul>
+          )}
         </section>
       </main>
 
