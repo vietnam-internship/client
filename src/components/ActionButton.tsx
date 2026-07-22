@@ -13,6 +13,7 @@ interface ActionButtonProps {
   to?: string
   onClick?: () => void
   className?: string
+  disabled?: boolean
 }
 
 function ActionButton({
@@ -21,6 +22,7 @@ function ActionButton({
   to,
   onClick,
   className = '',
+  disabled = false,
 }: ActionButtonProps) {
   const classes = `flex h-12 w-full items-center justify-center rounded-xl text-[14px] font-bold ${VARIANTS[variant]} ${className}`
 
@@ -33,7 +35,12 @@ function ActionButton({
   }
 
   return (
-    <button type="button" onClick={onClick} className={`cursor-pointer ${classes}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`cursor-pointer ${classes} disabled:cursor-default disabled:opacity-40`}
+    >
       {children}
     </button>
   )

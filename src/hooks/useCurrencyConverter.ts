@@ -25,6 +25,7 @@ function useCurrencyConverter() {
     handleAmountChange,
     krw: formatNumber(krw),
     vnd: formatNumber(vnd),
+    vndAmount: vnd,
   }
 }
 

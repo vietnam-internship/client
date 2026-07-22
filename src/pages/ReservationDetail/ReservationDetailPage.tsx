@@ -1,30 +1,107 @@
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { cancelReservation, getReservation } from '@/api/reservation'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
-import { ArrowRightIcon, QrCodeIcon } from '@/components/icons'
-import { findReservation } from '@/data/reservations'
+import { QrCodeIcon } from '@/components/icons'
 import useDisclosure from '@/hooks/useDisclosure'
-import type { HistoryStatus } from '@/types'
+import type { HistoryStatus, ReservationDetail } from '@/types'
+import { HttpError } from '@/utils/http'
+import { formatNumber } from '@/utils/format'
 import CancelDialog from '@/pages/ReservationDetail/components/CancelDialog'
 import InfoCard from '@/components/InfoCard'
 
 const STATUS_MESSAGES: Record<HistoryStatus, string> = {
-  completed: 'This exchange has been completed.',
-  cancelled: 'This exchange has been cancelled.',
+  COMPLETED: 'This exchange has been completed.',
+  CANCELLED: 'This exchange has been cancelled.',
 }
+
+type FetchResult =
+  | { kind: 'ready'; reservation: ReservationDetail }
+  | { kind: 'notFound' }
+  | { kind: 'error' }
 
 function ReservationDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const cancelDialog = useDisclosure()
-  const reservation = findReservation(id)
+  const reservationId = id ? Number(id) : NaN
+  const validId = id !== undefined && !Number.isNaN(reservationId)
 
-  if (!reservation) {
+  const [fetched, setFetched] = useState<{ id: string; result: FetchResult } | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!validId) return
+    let cancelled = false
+    getReservation(reservationId)
+      .then((reservation) => {
+        if (cancelled) return
+        setFetched({ id: id!, result: { kind: 'ready', reservation } })
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        const notFound = err instanceof HttpError && err.status === 404
+        setFetched({ id: id!, result: { kind: notFound ? 'notFound' : 'error' } })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [id, reservationId, validId])
+
+  const result = fetched !== null && fetched.id === id ? fetched.result : null
+
+  if (!validId || result?.kind === 'notFound') {
     return <Navigate to="/mypage/reservations" replace />
   }
 
-  const isActive = reservation.status === 'active'
+  if (result === null) {
+    return (
+      <PageLayout>
+        <Header backTo="/mypage/reservations" />
+        <main className="flex flex-1 items-center justify-center">
+          <p className="text-[13px] text-gray-400">Loading reservation…</p>
+        </main>
+        <BottomNav active="profile" />
+      </PageLayout>
+    )
+  }
+
+  if (result.kind === 'error') {
+    return (
+      <PageLayout>
+        <Header backTo="/mypage/reservations" />
+        <main className="flex flex-1 items-center justify-center">
+          <p className="text-[13px] text-gray-400">
+            Couldn&apos;t load this reservation. Please try again.
+          </p>
+        </main>
+        <BottomNav active="profile" />
+      </PageLayout>
+    )
+  }
+
+  const { reservation } = result
+  const isActive = reservation.status === 'RESERVED'
+
+  const handleCancel = async () => {
+    if (cancelling) return
+    setCancelling(true)
+    setCancelError(null)
+    try {
+      await cancelReservation(reservation.id)
+      navigate(`/mypage/reservations/${reservation.id}/cancelled`, {
+        state: reservation,
+        replace: true,
+      })
+    } catch {
+      setCancelling(false)
+      setCancelError('Failed to cancel the reservation. Please try again.')
+      cancelDialog.close()
+    }
+  }
 
   return (
     <PageLayout>
@@ -34,21 +111,19 @@ function ReservationDetailPage() {
         <h1 className="mt-2.5 text-[20px] font-bold text-gray-900">Reservation details</h1>
 
         <div className="mt-4 flex flex-col gap-3">
-          <InfoCard label="Pickup location" sub={reservation.locationDetail}>
-            {reservation.location}
+          <InfoCard label="Pickup location" sub={reservation.branch.address}>
+            {reservation.branchName}
           </InfoCard>
-          <InfoCard label="Pickup time">{reservation.dateTime}</InfoCard>
+          <InfoCard label="Pickup time">
+            {reservation.pickupDate} · {reservation.pickupTime}
+          </InfoCard>
           <InfoCard label="Currency">
-            <span className="flex items-center gap-3">
-              {reservation.fromAmount}
-              <ArrowRightIcon className="h-3.5 w-3.5 text-gray-400" />
-              {reservation.toAmount}
-            </span>
+            {formatNumber(reservation.amountTo)} {reservation.currencyCode}
           </InfoCard>
           <InfoCard label="Reservation number">{reservation.reservationNumber}</InfoCard>
         </div>
 
-        {reservation.status === 'active' ? (
+        {isActive ? (
           <>
             <button
               type="button"
@@ -63,6 +138,8 @@ function ReservationDetailPage() {
               for verification at pickup.
             </p>
 
+            {cancelError && <p className="mt-3 text-[12px] text-red-500">{cancelError}</p>}
+
             <button
               type="button"
               onClick={cancelDialog.open}
@@ -73,16 +150,13 @@ function ReservationDetailPage() {
           </>
         ) : (
           <div className="mt-3 rounded-xl bg-gray-100 py-4 text-center text-[13px] text-gray-600">
-            {STATUS_MESSAGES[reservation.status]}
+            {STATUS_MESSAGES[reservation.status as HistoryStatus]}
           </div>
         )}
       </main>
 
       {cancelDialog.isOpen && (
-        <CancelDialog
-          onKeep={cancelDialog.close}
-          onCancel={() => navigate(`/mypage/reservations/${reservation.id}/cancelled`)}
-        />
+        <CancelDialog onKeep={cancelDialog.close} onCancel={handleCancel} />
       )}
 
       <BottomNav active="profile" />

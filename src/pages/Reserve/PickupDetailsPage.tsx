@@ -1,44 +1,117 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { getBranch } from '@/api/branch'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { ArrowUpDownIcon } from '@/components/icons'
 import { KRW_PER_100_VND } from '@/constants/exchange'
-import { findPickupLocation } from '@/data/offices'
 import useCurrencyConverter from '@/hooks/useCurrencyConverter'
+import type { BranchDetail } from '@/types'
+import { HttpError } from '@/utils/http'
 import AmountField from '@/pages/Reserve/components/AmountField'
 
-const DATES = [
-  { day: 'MON', date: 24 },
-  { day: 'TUE', date: 25 },
-  { day: 'WED', date: 26 },
-  { day: 'THU', date: 27 },
-  { day: 'FRI', date: 28 },
-  { day: 'SAT', date: 29 },
-  { day: 'SUN', date: 30 },
-]
+// 예약 화면은 현재 KRW⇄VND 환전만 지원 — 백엔드 지점이 취급하는 통화와 무관하게 고정값
+const RESERVATION_CURRENCY = 'VND'
 
 const TIME_SLOTS = ['10:00', '12:00', '14:00']
+
+// 오늘부터 7일치 날짜 버튼 생성 (표시용 라벨 + API에 보낼 ISO 날짜)
+function buildDates(count: number) {
+  const base = new Date()
+  base.setDate(base.getDate() + 1)
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(base)
+    d.setDate(base.getDate() + i)
+    return {
+      day: d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+      date: d.getDate(),
+      iso: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+      label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    }
+  })
+}
+
+type FetchResult = { kind: 'ready'; branch: BranchDetail } | { kind: 'notFound' } | { kind: 'error' }
 
 function PickupDetailsPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [date, setDate] = useState(25)
-  const [time, setTime] = useState('12:00')
-  const { input, swapped, toggleSwapped, handleAmountChange, krw, vnd } = useCurrencyConverter()
+  const branchId = id ? Number(id) : NaN
+  const validId = id !== undefined && !Number.isNaN(branchId)
 
-  const location = findPickupLocation(id)
-  if (!location) {
+  const [dates] = useState(() => buildDates(7))
+  const [dateIndex, setDateIndex] = useState(0)
+  const [time, setTime] = useState(TIME_SLOTS[1])
+  const { input, swapped, toggleSwapped, handleAmountChange, krw, vnd, vndAmount } =
+    useCurrencyConverter()
+
+  const [fetched, setFetched] = useState<{ id: string; result: FetchResult } | null>(null)
+
+  useEffect(() => {
+    if (!validId) return
+    let cancelled = false
+    getBranch(branchId)
+      .then((branch) => {
+        if (cancelled) return
+        setFetched({ id: id!, result: { kind: 'ready', branch } })
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        const notFound = err instanceof HttpError && err.status === 404
+        setFetched({ id: id!, result: { kind: notFound ? 'notFound' : 'error' } })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [id, branchId, validId])
+
+  const result = fetched !== null && fetched.id === id ? fetched.result : null
+
+  if (!validId || result?.kind === 'notFound') {
     return <Navigate to="/maps" replace />
   }
+
+  if (result === null) {
+    return (
+      <PageLayout>
+        <Header backTo={-1} />
+        <main className="flex flex-1 items-center justify-center">
+          <p className="text-[13px] text-gray-400">Loading branch…</p>
+        </main>
+        <BottomNav active="exchange" />
+      </PageLayout>
+    )
+  }
+
+  if (result.kind === 'error') {
+    return (
+      <PageLayout>
+        <Header backTo={-1} />
+        <main className="flex flex-1 items-center justify-center">
+          <p className="text-[13px] text-gray-400">
+            Couldn&apos;t load this branch. Please try again.
+          </p>
+        </main>
+        <BottomNav active="exchange" />
+      </PageLayout>
+    )
+  }
+
+  const { branch } = result
+  const selectedDate = dates[dateIndex]
 
   const handleContinue = () => {
     navigate(`/reserve/${id}/review`, {
       state: {
-        dateTime: `Oct ${date}, 2026 · ${time}`,
-        fromAmount: `${krw} KRW`,
-        toAmount: `${vnd} VND`,
+        branchId: branch.id,
+        branchName: branch.name,
+        currencyCode: RESERVATION_CURRENCY,
+        amount: vndAmount,
+        pickupDate: selectedDate.iso,
+        pickupTime: time,
+        dateTimeLabel: `${selectedDate.label} · ${time}`,
+        amountLabel: `${krw} KRW → ${vnd} VND`,
       },
     })
   }
@@ -55,24 +128,24 @@ function PickupDetailsPage() {
 
       <main className="flex-1 px-4 pb-28">
         <h1 className="mt-8 text-[20px] font-bold text-gray-900">Pickup details</h1>
-        <p className="mt-1.5 text-[13px] text-gray-400">Choose a branch and pickup time</p>
+        <p className="mt-1.5 text-[13px] text-gray-400">{branch.name}</p>
 
         <section className="mt-6">
           <h2 className="text-[15px] font-bold text-gray-900">Select date</h2>
           <div className="-mr-4 mt-3 flex gap-2.5 overflow-x-auto pr-4 [scrollbar-width:none]">
-            {DATES.map(({ day, date: d }) => (
+            {dates.map((d, index) => (
               <button
-                key={d}
+                key={d.iso}
                 type="button"
-                onClick={() => setDate(d)}
+                onClick={() => setDateIndex(index)}
                 className={`h-12 w-[92px] shrink-0 cursor-pointer rounded-lg text-center transition-colors ${
-                  date === d
+                  dateIndex === index
                     ? 'bg-primary text-white'
                     : 'border border-gray-200 bg-white text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                <span className="block text-[11px]">{day}</span>
-                <span className="block text-[14px] font-bold">{d}</span>
+                <span className="block text-[11px]">{d.day}</span>
+                <span className="block text-[14px] font-bold">{d.date}</span>
               </button>
             ))}
           </div>
@@ -123,7 +196,8 @@ function PickupDetailsPage() {
         <button
           type="button"
           onClick={handleContinue}
-          className="mt-5 h-10 w-full cursor-pointer rounded-[10px] bg-primary text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
+          disabled={vndAmount <= 0}
+          className="mt-5 h-10 w-full cursor-pointer rounded-[10px] bg-primary text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-40"
         >
           Continue
         </button>

@@ -129,27 +129,65 @@ export interface PickupOffice {
   locationDetail: string
 }
 
-export type ReservationStatus = 'active' | 'completed' | 'cancelled'
+/** UI 라벨: RESERVED=Upcoming, COMPLETED=Completed, CANCELLED=Cancelled. */
+export type ReservationStatus = 'RESERVED' | 'COMPLETED' | 'CANCELLED'
 
-/** Statuses shown in exchange history, i.e. reservations that are no longer active. */
-export type HistoryStatus = Exclude<ReservationStatus, 'active'>
+/** Statuses shown in exchange history, i.e. reservations that are no longer upcoming. */
+export type HistoryStatus = Exclude<ReservationStatus, 'RESERVED'>
 
-export interface Reservation {
-  id: string
-  reservationNumber: string
-  location: string
-  locationDetail: string
-  dateTime: string
-  fromAmount: string
-  toAmount: string
-  status: ReservationStatus
+// Request body of POST /reservations
+export interface ReservationCreateRequest {
+  currencyCode: string
+  branchId: number
+  amount: number
+  pickupDate: string
+  pickupTime: string
 }
 
-/** Reservation details passed between the reserve pages via router state. */
+// Item of GET /reservations — lockedRate는 백엔드 Currency 도메인 연동 전이라 현재 항상 null.
+export interface ReservationSummary {
+  id: number
+  reservationNumber: string
+  currencyCode: string
+  amount: number
+  branchId: number
+  branchName: string
+  pickupDate: string
+  pickupTime: string
+  status: ReservationStatus
+  lockedRate: number | null
+  expiresAt: string | null
+  createdAt: string
+}
+
+// Response of GET/POST /reservations/{id} — amountFrom도 위와 동일한 이유로 현재 항상 null.
+export interface ReservationDetail extends ReservationSummary {
+  amountFrom: number | null
+  amountTo: number
+  qrPayload: string | null
+  pickedUpAt: string | null
+  branch: BranchSummary
+}
+
+// Response of GET /reservations
+export interface ReservationPage {
+  content: ReservationSummary[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+/** Reservation draft passed between the reserve pages via router state. */
 export interface ReservationDraft {
-  dateTime: string
-  fromAmount: string
-  toAmount: string
+  branchId: number
+  branchName: string
+  currencyCode: string
+  amount: number
+  pickupDate: string
+  pickupTime: string
+  dateTimeLabel: string
+  amountLabel: string
 }
 
 export interface Notification {

@@ -3,25 +3,22 @@ import ActionButton from '@/components/ActionButton'
 import PageLayout from '@/components/PageLayout'
 import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { CheckIcon } from '@/components/icons'
-import { findPickupLocation } from '@/data/offices'
-import type { ReservationDraft } from '@/types'
+import type { ReservationDetail } from '@/types'
+import { formatNumber } from '@/utils/format'
 import QrPlaceholder from '@/pages/Reserve/components/QrPlaceholder'
-
-type CompleteState = ReservationDraft & { reservationNumber: string }
 
 function ReservationCompletePage() {
   const { id } = useParams()
-  const state = useLocation().state as CompleteState | null
-  const location = findPickupLocation(id)
+  const reservation = useLocation().state as ReservationDetail | null
 
-  if (!location || !state) {
+  if (!reservation) {
     return <Navigate to={`/reserve/${id ?? ''}`} replace />
   }
 
   const summary = [
-    { label: 'Amount', value: state.toAmount },
-    { label: 'Location', value: location.name },
-    { label: 'Date', value: state.dateTime },
+    { label: 'Amount', value: `${formatNumber(reservation.amountTo)} ${reservation.currencyCode}` },
+    { label: 'Location', value: reservation.branch.name },
+    { label: 'Date', value: `${reservation.pickupDate} · ${reservation.pickupTime}` },
   ]
 
   return (
@@ -38,7 +35,7 @@ function ReservationCompletePage() {
           Your currency exchange reservation was submitted successfully.
         </p>
 
-        <ReservationNumberCard className="mt-7" number={state.reservationNumber} />
+        <ReservationNumberCard className="mt-7" number={reservation.reservationNumber} />
 
         <div className="mt-8 flex justify-center">
           <QrPlaceholder />

@@ -1,24 +1,24 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import ActionButton from '@/components/ActionButton'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { XIcon } from '@/components/icons'
-import { findReservation } from '@/data/reservations'
+import type { ReservationDetail } from '@/types'
+import { formatNumber } from '@/utils/format'
 
 function ReservationCancelledPage() {
-  const { id } = useParams()
-  const reservation = findReservation(id)
+  const reservation = useLocation().state as ReservationDetail | null
 
   if (!reservation) {
     return <Navigate to="/mypage/reservations" replace />
   }
 
   const summary = [
-    { label: 'Amount', value: reservation.toAmount },
-    { label: 'Location', value: reservation.location },
-    { label: 'Date', value: reservation.dateTime },
+    { label: 'Amount', value: `${formatNumber(reservation.amountTo)} ${reservation.currencyCode}` },
+    { label: 'Location', value: reservation.branchName },
+    { label: 'Date', value: `${reservation.pickupDate} · ${reservation.pickupTime}` },
   ]
 
   return (
