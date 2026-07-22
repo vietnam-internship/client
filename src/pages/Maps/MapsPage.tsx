@@ -67,7 +67,7 @@ function MapsPage() {
           ) : (
             <ul className="mt-2">
               {result.branches.map((branch) => (
-                <OfficeRow key={branch.id} branch={branch} />
+                <OfficeRow key={branch.id} branch={branch} currency={currency} />
               ))}
             </ul>
           )}

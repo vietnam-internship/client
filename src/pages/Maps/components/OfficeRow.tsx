@@ -3,11 +3,11 @@ import { GaugeIcon } from '@/components/icons'
 import type { BranchSummary } from '@/types'
 import { formatRate } from '@/utils/format'
 
-function OfficeRow({ branch }: { branch: BranchSummary }) {
+function OfficeRow({ branch, currency }: { branch: BranchSummary; currency: string }) {
   return (
     <li>
       <Link
-        to={`/reserve/${branch.id}`}
+        to={`/reserve/${branch.id}?currency=${encodeURIComponent(currency)}`}
         className="flex items-center justify-between border-b border-gray-100 py-3.5 transition-colors hover:bg-gray-50"
       >
         <span>

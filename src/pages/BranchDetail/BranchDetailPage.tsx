@@ -5,6 +5,7 @@ import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { MapPinIcon } from '@/components/icons'
+import { DEFAULT_RESERVATION_CURRENCY } from '@/constants/exchange'
 import type { BranchDetail } from '@/types'
 import { HttpError } from '@/utils/http'
 import { formatRate } from '@/utils/format'
@@ -133,7 +134,10 @@ function BranchDetailPage() {
 
         <button
           type="button"
-          onClick={() => navigate(`/reserve/${branch.id}`)}
+          onClick={() => {
+            const currency = branch.currencies[0]?.currencyCode ?? DEFAULT_RESERVATION_CURRENCY
+            navigate(`/reserve/${branch.id}?currency=${encodeURIComponent(currency)}`)
+          }}
           className="mt-6 h-11 w-full cursor-pointer rounded-xl bg-primary text-[14px] font-bold text-white transition-opacity hover:opacity-90"
         >
           Reserve now

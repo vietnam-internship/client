@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getBranch } from '@/api/branch'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { ArrowUpDownIcon } from '@/components/icons'
-import { KRW_PER_100_VND } from '@/constants/exchange'
+import { CURRENCY_INFO, DEFAULT_RESERVATION_CURRENCY, KRW_PER_100_VND } from '@/constants/exchange'
 import useCurrencyConverter from '@/hooks/useCurrencyConverter'
 import type { BranchDetail } from '@/types'
 import { HttpError } from '@/utils/http'
 import AmountField from '@/pages/Reserve/components/AmountField'
-
-// 예약 화면은 현재 KRW⇄VND 환전만 지원 — 백엔드 지점이 취급하는 통화와 무관하게 고정값
-const RESERVATION_CURRENCY = 'VND'
 
 const TIME_SLOTS = ['10:00', '12:00', '14:00']
 
@@ -36,9 +33,14 @@ type FetchResult = { kind: 'ready'; branch: BranchDetail } | { kind: 'notFound' 
 
 function PickupDetailsPage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const branchId = id ? Number(id) : NaN
   const validId = id !== undefined && !Number.isNaN(branchId)
+
+  // Maps/BranchDetail에서 선택한 통화를 쿼리로 넘겨받음 (없으면 기본값)
+  const currency = searchParams.get('currency') ?? DEFAULT_RESERVATION_CURRENCY
+  const currencyInfo = CURRENCY_INFO[currency] ?? { flag: '💱', label: currency }
 
   const [dates] = useState(() => buildDates(7))
   const [dateIndex, setDateIndex] = useState(0)
@@ -106,19 +108,19 @@ function PickupDetailsPage() {
       state: {
         branchId: branch.id,
         branchName: branch.name,
-        currencyCode: RESERVATION_CURRENCY,
+        currencyCode: currency,
         amount: vndAmount,
         pickupDate: selectedDate.iso,
         pickupTime: time,
         dateTimeLabel: `${selectedDate.label} · ${time}`,
-        amountLabel: `${krw} KRW → ${vnd} VND`,
+        amountLabel: `${krw} KRW → ${vnd} ${currency}`,
       },
     })
   }
 
   const fields = [
     { flag: '🇰🇷', label: 'Korean won', unit: 'KRW', amount: krw },
-    { flag: '🇻🇳', label: 'Vietnamese dong', unit: 'VND', amount: vnd },
+    { flag: currencyInfo.flag, label: currencyInfo.label, unit: currency, amount: vnd },
   ]
   if (swapped) fields.reverse()
 
@@ -174,7 +176,7 @@ function PickupDetailsPage() {
         <section className="mt-8">
           <h2 className="text-[15px] font-bold text-gray-900">Enter amount</h2>
           <p className="mt-1.5 text-[11px] text-gray-400">
-            Rate: 100 VND = {KRW_PER_100_VND} KRW
+            Rate: 100 {currency} = {KRW_PER_100_VND} KRW
           </p>
 
           <div className="mt-3">
