@@ -1,5 +1,5 @@
 import { http } from '@/utils/http'
-import type { BranchDetail, BranchSummary } from '@/types'
+import type { BranchCreateRequest, BranchDetail, BranchSummary, BranchUpdateRequest } from '@/types'
 
 // Branch 도메인 응답은 다른 도메인과 달리 { result, data }로 감싸져 온다 (실제 백엔드 ApiResponse 포맷).
 interface ApiEnvelope<T> {
@@ -30,5 +30,23 @@ export async function listBranches(params: ListBranchesParams = {}): Promise<Bra
 // GET /branches/{id} — 지점 상세
 export async function getBranch(id: number): Promise<BranchDetail> {
   const { data } = await http<ApiEnvelope<BranchDetail>>(`/branches/${id}`)
+  return data
+}
+
+// POST /admin/branches — 관리자 전용 신규 지점 등록
+export async function createBranch(payload: BranchCreateRequest): Promise<BranchDetail> {
+  const { data } = await http<ApiEnvelope<BranchDetail>>('/admin/branches', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+  return data
+}
+
+// PATCH /admin/branches/{id} — 관리자 전용 지점 부분 수정
+export async function updateBranch(id: number, payload: BranchUpdateRequest): Promise<BranchDetail> {
+  const { data } = await http<ApiEnvelope<BranchDetail>>(`/admin/branches/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
   return data
 }

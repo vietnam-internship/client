@@ -121,6 +121,33 @@ export interface BranchDetail extends BranchSummary {
   currencies: BranchCurrencyRate[]
 }
 
+// Request body of POST /admin/branches (관리자 전용)
+export interface BranchCreateRequest {
+  name: string
+  address: string
+  latitude: number
+  longitude: number
+  phone: string
+  businessHours: string
+  pickupLocationDetail?: string
+  timeSlotCapacity: number
+  supportedCurrencies?: string[]
+}
+
+// Request body of PATCH /admin/branches/{id} — 전달된 필드만 갱신 (관리자 전용)
+export interface BranchUpdateRequest {
+  name?: string
+  address?: string
+  latitude?: number
+  longitude?: number
+  phone?: string
+  businessHours?: string
+  pickupLocationDetail?: string
+  timeSlotCapacity?: number
+  supportedCurrencies?: string[]
+  active?: boolean
+}
+
 /** UI 라벨: RESERVED=Upcoming, COMPLETED=Completed, CANCELLED=Cancelled. */
 export type ReservationStatus = 'RESERVED' | 'COMPLETED' | 'CANCELLED'
 
