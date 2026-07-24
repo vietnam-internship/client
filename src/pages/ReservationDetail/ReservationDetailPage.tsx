@@ -4,11 +4,13 @@ import { cancelReservation, getReservation } from '@/api/reservation'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
+import QrCodeImage from '@/components/QrCodeImage'
 import { QrCodeIcon } from '@/components/icons'
 import useDisclosure from '@/hooks/useDisclosure'
 import type { HistoryStatus, ReservationDetail } from '@/types'
 import { HttpError } from '@/utils/http'
 import { formatNumber } from '@/utils/format'
+import { encodeQrPayload } from '@/utils/qrPayload'
 import CancelDialog from '@/pages/ReservationDetail/components/CancelDialog'
 import InfoCard from '@/components/InfoCard'
 
@@ -32,6 +34,7 @@ function ReservationDetailPage() {
   const [fetched, setFetched] = useState<{ id: string; result: FetchResult } | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
+  const [showQr, setShowQr] = useState(false)
 
   useEffect(() => {
     if (!validId) return
@@ -127,11 +130,25 @@ function ReservationDetailPage() {
           <>
             <button
               type="button"
-              className="mt-3 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-50 text-[14px] font-bold text-primary transition-colors hover:bg-blue-100"
+              onClick={() => setShowQr((prev) => !prev)}
+              disabled={!reservation.qrPayload}
+              className="mt-3 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-50 text-[14px] font-bold text-primary transition-colors hover:bg-blue-100 disabled:cursor-default disabled:opacity-40"
             >
               <QrCodeIcon className="h-[18px] w-[18px]" />
-              View QR code
+              {showQr ? 'Hide QR code' : 'View QR code'}
             </button>
+
+            {showQr && reservation.qrPayload && (
+              <div className="mt-4 flex justify-center">
+                <QrCodeImage
+                  value={encodeQrPayload({
+                    branchId: reservation.branchId,
+                    reservationId: reservation.id,
+                    qrToken: reservation.qrPayload,
+                  })}
+                />
+              </div>
+            )}
 
             <p className="mt-4 text-[12px] leading-[1.5] text-gray-400">
               Rates may change if you cancel or modify after submitting. Please bring your ID

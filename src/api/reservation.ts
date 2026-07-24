@@ -1,5 +1,7 @@
 import { http } from '@/utils/http'
 import type {
+  RedeemRequest,
+  RedeemResponse,
   ReservationCreateRequest,
   ReservationDetail,
   ReservationPage,
@@ -53,4 +55,17 @@ export async function getReservation(id: number): Promise<ReservationDetail> {
 // DELETE /reservations/{id} — 204 No Content
 export function cancelReservation(id: number): Promise<void> {
   return http<void>(`/reservations/${id}`, { method: 'DELETE' })
+}
+
+// POST /branches/{branchId}/reservations/{reservationId}/redeem — 직원 전용(ADMIN)
+export async function redeemReservation(
+  branchId: number,
+  reservationId: number,
+  payload: RedeemRequest,
+): Promise<RedeemResponse> {
+  const { data } = await http<ApiEnvelope<RedeemResponse>>(
+    `/branches/${branchId}/reservations/${reservationId}/redeem`,
+    { method: 'POST', body: JSON.stringify(payload) },
+  )
+  return data
 }

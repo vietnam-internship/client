@@ -161,6 +161,20 @@ export interface ReservationDetail extends ReservationSummary {
   branch: BranchSummary
 }
 
+// Request body of POST /branches/{id}/reservations/{reservationId}/redeem
+export interface RedeemRequest {
+  qrToken: string
+  idVerified: boolean
+}
+
+// Response of POST /branches/{id}/reservations/{reservationId}/redeem
+export interface RedeemResponse {
+  reservationId: number
+  status: ReservationStatus
+  pickedUpAt: string | null
+  summary: ReservationDetail
+}
+
 // Response of GET /reservations
 export interface ReservationPage {
   content: ReservationSummary[]

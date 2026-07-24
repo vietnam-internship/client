@@ -1,11 +1,12 @@
 import { Navigate, useLocation, useParams } from 'react-router-dom'
 import ActionButton from '@/components/ActionButton'
 import PageLayout from '@/components/PageLayout'
+import QrCodeImage from '@/components/QrCodeImage'
 import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { CheckIcon } from '@/components/icons'
 import type { ReservationDetail } from '@/types'
 import { formatNumber } from '@/utils/format'
-import QrPlaceholder from '@/pages/Reserve/components/QrPlaceholder'
+import { encodeQrPayload } from '@/utils/qrPayload'
 
 function ReservationCompletePage() {
   const { id } = useParams()
@@ -37,9 +38,17 @@ function ReservationCompletePage() {
 
         <ReservationNumberCard className="mt-7" number={reservation.reservationNumber} />
 
-        <div className="mt-8 flex justify-center">
-          <QrPlaceholder />
-        </div>
+        {reservation.qrPayload && (
+          <div className="mt-8 flex justify-center">
+            <QrCodeImage
+              value={encodeQrPayload({
+                branchId: reservation.branchId,
+                reservationId: reservation.id,
+                qrToken: reservation.qrPayload,
+              })}
+            />
+          </div>
+        )}
 
         <dl className="mt-auto border-t border-gray-200 pt-1">
           {summary.map(({ label, value }) => (
