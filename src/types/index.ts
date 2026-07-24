@@ -37,7 +37,8 @@ export interface CurrencySummary {
   updatedAt: string
 }
 
-// Response of GET /currencies — recent/popular은 q 미입력 시에만 내려옴. 
+// Response of GET /currencies — recent/popular은 q 미입력 시에만 내려옴.
+// recentSearches는 백엔드가 아직 세션 기반 최근 검색을 구현 전이라 항상 빈 배열로 옴 — MVP 스텁.
 export interface CurrencyListResponse {
   results: CurrencySummary[]
   recentSearches: CurrencySummary[] | null
@@ -61,15 +62,14 @@ export interface RateHistoryEntry {
  */
 export type TimingSignal = 'NOW' | 'WAIT' | 'NEUTRAL' | 'COLLECTING_DATA'
 
-// Response of GET /currencies/{code}/recommendation (AI 환전 타이밍 추천)
+// Response of GET /currencies/{code}/recommendation (AI 환전 타이밍 추천).
+// 백엔드가 아직 MVP 스텁이라 signal은 항상 'NEUTRAL', predictedRate는 항상 null로 옴 — #추후 실제 AI 모델 연동 예정.
 export interface TimingRecommendation {
   currencyCode: string
   signal: TimingSignal
   currentRate: number
   predictedRate: number | null
   highVolatility: boolean
-  fallbackUsed: boolean
-  explanation: { feature: string; contribution: number }[]
   disclaimer: string
 }
 
