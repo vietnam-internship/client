@@ -31,44 +31,84 @@ function AdminQrScanPage() {
   const [step, setStep] = useState<Step>({ kind: 'scanning' })
   const [pending, setPending] = useState(false)
 
-  // 'scanning' 상태일 때만 카메라를 켜고, 벗어나면 반드시 정리한다 (카메라 점유 방지)
+  // 'scanning' 상태일 때만 카메라를 켜고, 벗어나면 반드시 정리한다 (카메라 점유 방지).
+  // React 18 StrictMode(dev)는 마운트 시 setup→cleanup→setup을 같은 틱에서 동기적으로
+  // 실행하는데, html5-qrcode는 React 밖에서 카메라를 직접 잡기 때문에 첫 번째(버려질)
+  // start() 호출이 이미 카메라 협상을 시작해버려 카메라가 2개 뜨는 문제가 생긴다.
+  // 실제 start() 호출을 한 틱 미뤄서, StrictMode의 첫 setup은 cleanup에 의해 취소된 뒤
+  // 카메라를 아예 켜지 않도록 한다.
   useEffect(() => {
     if (step.kind !== 'scanning') return
 
-    const scanner = new Html5Qrcode(SCANNER_ELEMENT_ID)
-    let stopped = false
+    let cancelled = false
+    let scanner: Html5Qrcode | null = null
+    let teardownPromise: Promise<void> | null = null
 
-    const stopScanner = () => {
-      if (stopped) return
-      stopped = true
-      scanner
-        .stop()
-        .then(() => scanner.clear())
-        .catch(() => {})
+    const teardown = () => {
+      if (teardownPromise) return teardownPromise
+      const target = scanner
+      teardownPromise = (async () => {
+        if (!target) return
+        // html5-qrcode의 stop()은 아직 스캔 중이 아니면 프로미스가 아니라 "동기적으로" throw
+        // 한다 — .catch()로는 못 잡히므로 try/catch로 감싸야 한다.
+        try {
+          await target.stop()
+        } catch {
+          // 이미 멈춰있거나 start()가 아직 안 끝난 상태 — 무시
+        }
+        try {
+          target.clear()
+        } catch {
+          // 이미 언마운트된 DOM 노드일 수 있음 — 무시
+        }
+      })()
+      return teardownPromise
     }
 
-    scanner
-      .start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: 240 },
-        (decodedText) => {
-          const payload = decodeQrPayload(decodedText)
-          if (!payload || stopped) return
-          stopScanner()
-          setStep({ kind: 'confirm', ...payload })
-        },
-        () => {
-          // 프레임마다 QR을 못 읽었을 때 호출됨 — 정상적인 동작이라 무시
-        },
-      )
-      .catch(() => {
-        setStep({
-          kind: 'cameraError',
-          message: 'Could not access the camera. Please check camera permission and try again.',
-        })
-      })
+    const timer = setTimeout(() => {
+      if (cancelled) return
+      scanner = new Html5Qrcode(SCANNER_ELEMENT_ID)
+      scanner
+        .start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: 340 },
+          (decodedText) => {
+            if (cancelled) return
+            const payload = decodeQrPayload(decodedText)
+            if (!payload) return
+            cancelled = true
+            void teardown().then(() => setStep({ kind: 'confirm', ...payload }))
+          },
+          () => {
+            // 프레임마다 QR을 못 읽었을 때 호출됨 — 정상적인 동작이라 무시
+          },
+        )
+        .then(() => {
+          // start()가 끝난 시점에 이미 cleanup이 요청됐다면 바로 정리한다
+          if (cancelled) void teardown()
 
-    return stopScanner
+          document
+            .querySelectorAll<HTMLElement>(`#${SCANNER_ELEMENT_ID} video, #${SCANNER_ELEMENT_ID} canvas`)
+            .forEach((el) => {
+              el.style.setProperty('transform', 'scaleX(-1)', 'important')
+              el.style.setProperty('-webkit-transform', 'scaleX(-1)', 'important')
+            })
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setStep({
+              kind: 'cameraError',
+              message: 'Could not access the camera. Please check camera permission and try again.',
+            })
+          }
+        })
+    }, 0)
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      void teardown()
+    }
   }, [step.kind])
 
   const handleDecision = async (idVerified: boolean) => {
@@ -99,7 +139,7 @@ function AdminQrScanPage() {
         <section className="mt-8 rounded-lg border border-primary px-6 py-7">
           <h2 className="text-[18px] font-bold text-gray-900">Please show the QR code</h2>
           {step.kind === 'cameraError' ? (
-            <div className="mt-5 flex h-[500px] w-full flex-col items-center justify-center gap-3 bg-gray-100 text-center">
+            <div className="mt-5 flex h-[420px] w-full flex-col items-center justify-center gap-3 bg-gray-100 text-center">
               <p className="max-w-[280px] text-[12px] text-gray-500">{step.message}</p>
               <button
                 type="button"
@@ -110,7 +150,22 @@ function AdminQrScanPage() {
               </button>
             </div>
           ) : (
-            <div id={SCANNER_ELEMENT_ID} className="mt-5 w-full overflow-hidden bg-gray-200" />
+            <>
+              {/* 카메라를 좌우 반전(scaleX(-1))해서 셀피처럼 자연스럽게 보이게 하고, 실제 카메라
+                  해상도와 무관하게 고정 높이 박스에 꽉 채워서(object-fit: cover) 페이지가
+                  늘어나지 않고 한 화면 안에 들어오도록 한다. */}
+              <style>{`
+                #${SCANNER_ELEMENT_ID} { height: 420px; }
+                #${SCANNER_ELEMENT_ID} video,
+                #${SCANNER_ELEMENT_ID} canvas {
+                  transform: scaleX(-1) !important;
+                  width: 100% !important;
+                  height: 100% !important;
+                  object-fit: cover !important;
+                }
+              `}</style>
+              <div id={SCANNER_ELEMENT_ID} className="mt-5 w-full overflow-hidden bg-gray-200" />
+            </>
           )}
         </section>
       ) : step.kind === 'confirm' ? (
