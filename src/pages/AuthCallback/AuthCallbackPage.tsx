@@ -18,9 +18,12 @@ function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
     if (startedRef.current) return
     startedRef.current = true
 
-    // 이 탭에서 시작한 로그인 플로우인지 확인 (플래그는 읽는 즉시 소멸 — 재진입 방지)
+    // 이 탭에서 시작한 로그인 플로우인지, state가 그때 만든 값과 일치하는지 확인
+    // (저장된 값은 읽는 즉시 소멸 — 재진입 방지 겸 CSRF 방지)
     const code = searchParams.get('code')
-    if (!consumeOAuthStarted() || !code) {
+    const state = searchParams.get('state')
+    if (!consumeOAuthStarted(state) || !code) {
+      console.error('[AuthCallback] state/code 검증 실패', { code, state })
       navigate('/login?error=oauth', { replace: true })
       return
     }
@@ -31,7 +34,8 @@ function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
         // 신규 유저는 프로필 완성(휴대폰 인증) 화면으로 유도
         navigate(session.isNewUser ? '/register' : '/', { replace: true })
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('[AuthCallback] exchangeGoogleCode 실패', error)
         navigate('/login?error=oauth', { replace: true })
       })
   }, [searchParams, navigate, onLogin])

@@ -44,9 +44,9 @@ function LoginPage() {
         : null
 
   const handleGoogleLogin = () => {
-    markOAuthStarted() // 진짜 내가 시작한 로그인 요청인지 구분
-    // 백엔드의 OAuth 엔드포인트로 이동
-    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`
+    const state = markOAuthStarted() // 진짜 내가 시작한 로그인 요청인지 구분(CSRF 방지)
+    // 백엔드의 OAuth 엔드포인트로 이동 — state는 서버가 그대로 relay하므로 프론트가 만들어 보낸다.
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google?state=${encodeURIComponent(state)}`
   }
 
   return (

@@ -36,8 +36,10 @@ function handleSessionExpired() {
  * - 백엔드 에러 바디 `{ code, message }`를 파싱해 HttpError.code에 실어줌
  * - 토큰을 실어 보낸 요청이 401로 실패하면 세션 만료로 간주하고 로그아웃 처리한다.
  * - 204/빈 응답, JSON이 아닌 응답도 에러 없이 처리
- * - 성공 응답은 백엔드 공용 포맷 `{ result, data, code, message }`로 감싸져 오므로 `data`만 꺼내 돌려준다
+ * - 대부분의 성공 응답은 백엔드 공용 포맷 `{ result, data, code, message }`로 감싸져 오므로 `data`만 꺼내 돌려준다
  *   (실제 로컬 서버에 요청해 확인함 — 이전에는 래퍼째로 반환돼 호출부 타입과 어긋나 있었다).
+ *   단, /auth/google/callback처럼 ApiResponse로 감싸지 않고 DTO를 그대로 반환하는 엔드포인트도 있어
+ *   (AuthController 주석 참고) `result` 필드 존재 여부로 감싸진 응답인지 판별한다.
  */
 export async function http<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY)
@@ -81,11 +83,11 @@ export async function http<T>(path: string, init: RequestInit = {}): Promise<T> 
       return undefined as T
     }
 
-    // JSON 응답만 파싱, 나머지는 undefined 반환. 성공 바디는 { result, data } 형태라 data만 꺼낸다.
+    // JSON 응답만 파싱, 나머지는 undefined 반환. { result, data } 형태로 감싸진 응답이면 data만 꺼낸다.
     const contentType = res.headers.get('Content-Type') ?? ''
     if (contentType.includes('application/json')) {
-      const body = (await res.json()) as { data?: T }
-      return body.data as T
+      const body = (await res.json()) as { result?: string; data?: T }
+      return (typeof body.result === 'string' ? body.data : body) as T
     }
     return undefined as T
   } catch (error) {
