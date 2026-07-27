@@ -3,25 +3,25 @@ import ActionButton from '@/components/ActionButton'
 import PageLayout from '@/components/PageLayout'
 import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { CheckIcon } from '@/components/icons'
-import { findPickupLocation } from '@/data/offices'
-import type { ReservationDraft } from '@/types'
+import type { ReservationDetail } from '@/types'
 import QrPlaceholder from '@/pages/Reserve/components/QrPlaceholder'
-
-type CompleteState = ReservationDraft & { reservationNumber: string }
 
 function ReservationCompletePage() {
   const { id } = useParams()
-  const state = useLocation().state as CompleteState | null
-  const location = findPickupLocation(id)
+  const reservation = useLocation().state as ReservationDetail | null
 
-  if (!location || !state) {
+  if (!reservation) {
     return <Navigate to={`/reserve/${id ?? ''}`} replace />
   }
 
+  // 예약 생성은 PENDING_PAYMENT 상태로만 이뤄진다 — Stripe 결제 UI는 아직 없어서, 실제로
+  // RESERVED(결제 완료)까지 가는 경우는 지금 없다. 그 상태를 그대로 보여준다.
+  const isPendingPayment = reservation.status === 'PENDING_PAYMENT'
+
   const summary = [
-    { label: 'Amount', value: state.toAmount },
-    { label: 'Location', value: location.name },
-    { label: 'Date', value: state.dateTime },
+    { label: 'Amount', value: `${reservation.amountTo} ${reservation.currencyCode}` },
+    { label: 'Location', value: reservation.branch.name },
+    { label: 'Date', value: `${reservation.pickupDate} · ${reservation.pickupTime}` },
   ]
 
   return (
@@ -32,17 +32,21 @@ function ReservationCompletePage() {
         </div>
 
         <h1 className="mt-5 text-center text-[20px] font-bold text-gray-900">
-          Reservation complete
+          {isPendingPayment ? 'Reservation held' : 'Reservation complete'}
         </h1>
         <p className="mx-auto mt-2 max-w-[280px] text-center text-[13px] leading-[1.5] text-gray-400">
-          Your currency exchange reservation was submitted successfully.
+          {isPendingPayment
+            ? "Payment is required to confirm your pickup. Card payment isn't available in this build yet."
+            : 'Your currency exchange reservation was submitted successfully.'}
         </p>
 
-        <ReservationNumberCard className="mt-7" number={state.reservationNumber} />
+        <ReservationNumberCard className="mt-7" number={reservation.reservationNumber} />
 
-        <div className="mt-8 flex justify-center">
-          <QrPlaceholder />
-        </div>
+        {reservation.qrPayload && (
+          <div className="mt-8 flex justify-center">
+            <QrPlaceholder />
+          </div>
+        )}
 
         <dl className="mt-auto border-t border-gray-200 pt-1">
           {summary.map(({ label, value }) => (

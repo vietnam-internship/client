@@ -51,14 +51,6 @@ export interface Branch {
   hours: { label: string; time: string }[]
 }
 
-export interface PickupOffice {
-  id: string
-  name: string
-  openUntil: string
-  rate: string
-  locationDetail: string
-}
-
 /**
  * GET /branches 목록 항목 — 위 `Branch`(목업, 아직 API 미연동 페이지에서 사용 중)와는 별개로,
  * 실제 서버 응답 스키마(BranchSummary)를 그대로 옮긴 타입이다.
@@ -83,7 +75,8 @@ export interface BranchSummary {
 export interface BranchCurrencyRate {
   currencyCode: string
   preferentialRate: number
-  finalRate: number
+  /** Currency 도메인이 서버에 아직 없으면(현재 develop 기준) 항상 null이다. */
+  finalRate: number | null
   reservationOnlyStock: number
   updatedAt: string
 }
@@ -100,27 +93,63 @@ export interface BranchDetail extends BranchSummary {
   currencies: BranchCurrencyRate[]
 }
 
-export type ReservationStatus = 'active' | 'completed' | 'cancelled'
+/**
+ * 서버 ReservationStatus(#39 결제 시스템 병합 이후 5종). PENDING_PAYMENT는 결제 대기,
+ * EXPIRED는 결제 TTL(5분) 초과로 자동 해제된 홀드 — 노쇼(autoExpired)와는 서버에서 구분한다.
+ */
+export type ServerReservationStatus = 'PENDING_PAYMENT' | 'RESERVED' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED'
 
-/** Statuses shown in exchange history, i.e. reservations that are no longer active. */
-export type HistoryStatus = Exclude<ReservationStatus, 'active'>
-
-export interface Reservation {
-  id: string
+/** GET /reservations 목록 항목. */
+export interface ReservationSummary {
+  id: number
   reservationNumber: string
-  location: string
-  locationDetail: string
-  dateTime: string
-  fromAmount: string
-  toAmount: string
-  status: ReservationStatus
+  currencyCode: string
+  amount: number
+  branchId: number
+  branchName: string
+  pickupDate: string
+  pickupTime: string
+  status: ServerReservationStatus
+  lockedRate: number | null
+  /** PENDING_PAYMENT일 때만 값이 온다 (결제 TTL 만료 시각). */
+  paymentExpiresAt: string | null
+  /** RESERVED일 때만 값이 온다 (픽업 홀드 만료 시각). */
+  expiresAt: string | null
+  createdAt: string
 }
 
-/** Reservation details passed between the reserve pages via router state. */
-export interface ReservationDraft {
-  dateTime: string
-  fromAmount: string
-  toAmount: string
+/** POST /reservations, GET /reservations/{id} 응답. */
+export interface ReservationDetail extends ReservationSummary {
+  /** amount × lockedRate(KRW) — lockedRate가 없으면 null. */
+  amountFrom: number | null
+  amountTo: number
+  /** RESERVED 상태일 때만 값이 온다 — 픽업 시 제시할 일회용 QR. */
+  qrPayload: string | null
+  pickedUpAt: string | null
+  branch: BranchSummary
+  /**
+   * Stripe PaymentIntent의 client secret — 예약 생성(POST) 응답에서만 채워진다.
+   * 결제 UI(Stripe Elements)는 이번 스코프에 포함하지 않아 현재는 사용하지 않는다.
+   */
+  paymentClientSecret: string | null
+}
+
+export interface ReservationPage {
+  content: ReservationSummary[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+/** Pickup 예약 초안 — PickupDetailsPage에서 골라 ReviewReservationPage로 넘긴다. */
+export interface PickupReservationDraft {
+  branchId: number
+  branchName: string
+  currencyCode: string
+  amount: number
+  pickupDate: string
+  pickupTime: string
 }
 
 export interface Notification {
