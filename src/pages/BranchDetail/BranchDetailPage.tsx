@@ -111,7 +111,7 @@ function BranchDetailView({ branchId }: { branchId: number }) {
                     >
                       <span className="text-[13px] font-bold text-gray-900">{rate.currencyCode}</span>
                       <span className="text-[13px] font-bold text-gray-900">
-                        {formatNumber(rate.finalRate)}
+                        {rate.finalRate !== null ? formatNumber(rate.finalRate) : '—'}
                       </span>
                     </li>
                   ))}

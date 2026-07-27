@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
-import type { Reservation } from '@/types'
+import type { ReservationSummary } from '@/types'
 
-function ReservationListCard({ reservation }: { reservation: Reservation }) {
+function ReservationListCard({ reservation }: { reservation: ReservationSummary }) {
   return (
     <li>
       <Link
@@ -10,11 +10,15 @@ function ReservationListCard({ reservation }: { reservation: Reservation }) {
       >
         <span>
           <span className="block text-[14px] font-bold text-gray-900">
-            {reservation.location}
+            {reservation.branchName}
           </span>
-          <span className="mt-1 block text-[12px] text-gray-400">{reservation.dateTime}</span>
+          <span className="mt-1 block text-[12px] text-gray-400">
+            {reservation.pickupDate} · {reservation.pickupTime}
+          </span>
         </span>
-        <span className="text-[13px] font-bold text-gray-900">{reservation.toAmount}</span>
+        <span className="text-[13px] font-bold text-gray-900">
+          {reservation.amount} {reservation.currencyCode}
+        </span>
       </Link>
     </li>
   )

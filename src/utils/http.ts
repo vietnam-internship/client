@@ -3,8 +3,10 @@ import { ACCESS_TOKEN_KEY, AUTH_USER_KEY } from '@/constants/storage'
 
 /**
  * Thrown for any non-2xx response so callers can branch on `status` or `code`.
- * `code`는 백엔드 공통 에러 형식 `{ code, message, timestamp }`의 에러 코드
- * (예: PHONE_NOT_VERIFIED, AUTH_INVALID_TOKEN). JSON이 아닌 응답이면 undefined.
+ * `code`는 백엔드 공통 에러 형식 `{ code, message, timestamp }`의 에러 코드(예: "C205") —
+ * 서버 BusinessErrorCode의 짧은 코드 값이지 enum 이름이 아니다. JSON이 아닌 응답이면 undefined.
+ * `message`는 서버가 내려준 그대로(이미 한국어로 로컬라이즈됨)라 그대로 사용자에게 보여줘도 된다 —
+ * HTTP 상태 접두어를 붙이지 않는다.
  */
 export class HttpError extends Error {
   status: number
@@ -12,7 +14,7 @@ export class HttpError extends Error {
   responseText?: string
 
   constructor(status: number, message: string, responseText?: string, code?: string) {
-    super(`HTTP ${status}: ${message}`)
+    super(message)
     this.name = 'HttpError'
     this.status = status
     this.code = code
