@@ -1,11 +1,30 @@
+import { useEffect, useState } from 'react'
+import { listBranches } from '@/api/branch'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
+import ListRowLink from '@/components/ListRowLink'
 import PageLayout from '@/components/PageLayout'
-import { PICKUP_OFFICES } from '@/data/offices'
 import MapPlaceholder from '@/pages/Maps/components/MapPlaceholder'
-import OfficeRow from '@/pages/Maps/components/OfficeRow'
+import type { BranchSummary } from '@/types'
 
 function MapsPage() {
+  const [branches, setBranches] = useState<BranchSummary[] | null>(null)
+  const [hasError, setHasError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    listBranches()
+      .then((data) => {
+        if (!cancelled) setBranches(data)
+      })
+      .catch(() => {
+        if (!cancelled) setHasError(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <PageLayout>
       <Header />
@@ -29,9 +48,39 @@ function MapsPage() {
             </button>
           </div>
 
+          {hasError && (
+            <p className="mt-6 text-[12px] text-red-500">
+              Couldn't load branches. Please try again later.
+            </p>
+          )}
+          {!hasError && branches === null && (
+            <p className="mt-6 text-[12px] text-gray-400">Loading branches…</p>
+          )}
+          {!hasError && branches !== null && branches.length === 0 && (
+            <p className="mt-6 text-[12px] text-gray-400">No branches to show.</p>
+          )}
+
           <ul className="mt-2">
-            {PICKUP_OFFICES.map((office) => (
-              <OfficeRow key={office.id} office={office} />
+            {branches?.map((branch) => (
+              <ListRowLink
+                key={branch.id}
+                to={`/branch/${branch.id}`}
+                title={branch.name}
+                subtitle={branch.address}
+                right={
+                  <span
+                    className={`flex items-center gap-1.5 text-[12px] font-medium ${
+                      branch.isOpenNow ? 'text-green-700' : 'text-gray-400'
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${branch.isOpenNow ? 'bg-green-600' : 'bg-gray-300'}`}
+                    />
+                    {branch.isOpenNow ? 'Open now' : 'Closed'}
+                  </span>
+                }
+                className="py-3.5"
+              />
             ))}
           </ul>
         </div>
