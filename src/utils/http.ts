@@ -43,6 +43,8 @@ export async function http<T>(path: string, init: RequestInit = {}): Promise<T> 
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
+      credentials: 'include',
+
       headers: {
         ...(init.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
