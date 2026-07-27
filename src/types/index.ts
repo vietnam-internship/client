@@ -123,6 +123,11 @@ export interface ReservationDraft {
   toAmount: string
 }
 
+/** Passed to PaymentPage via router state once ReviewReservationPage calls POST /reservations. */
+export interface PaymentDraft {
+  clientSecret: string
+}
+
 export interface Notification {
   icon: 'trend' | 'clock' | 'pin'
   title: string

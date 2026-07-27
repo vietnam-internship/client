@@ -22,6 +22,7 @@ import MyReservationPage from '@/pages/MyReservation/MyReservationPage'
 import RegisterPage from '@/pages/Register/RegisterPage'
 import ReservationCancelledPage from '@/pages/ReservationCancelled/ReservationCancelledPage'
 import ReservationDetailPage from '@/pages/ReservationDetail/ReservationDetailPage'
+import PaymentPage from '@/pages/Payment/PaymentPage'
 import PickupDetailsPage from '@/pages/Reserve/PickupDetailsPage'
 import ReviewReservationPage from '@/pages/Reserve/ReviewReservationPage'
 import ReservationCompletePage from '@/pages/Reserve/ReservationCompletePage'
@@ -63,6 +64,7 @@ function App() {
         <Route path="/maps" element={requireAuth(<MapsPage />)} />
         <Route path="/reserve/:id" element={requireAuth(<PickupDetailsPage />)} />
         <Route path="/reserve/:id/review" element={requireAuth(<ReviewReservationPage />)} />
+        <Route path="/reserve/:id/payment" element={requireAuth(<PaymentPage />)} />
         <Route
           path="/reserve/:id/complete"
           element={requireAuth(<ReservationCompletePage />)}
