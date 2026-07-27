@@ -59,6 +59,47 @@ export interface PickupOffice {
   locationDetail: string
 }
 
+/**
+ * GET /branches 목록 항목 — 위 `Branch`(목업, 아직 API 미연동 페이지에서 사용 중)와는 별개로,
+ * 실제 서버 응답 스키마(BranchSummary)를 그대로 옮긴 타입이다.
+ */
+export interface BranchSummary {
+  id: number
+  name: string
+  address: string
+  latitude: number
+  longitude: number
+  /** latitude/longitude 파라미터 전달 시에만 값이 온다. */
+  distanceKm: number | null
+  isOpenNow: boolean
+  /** currency 파라미터 전달 시에만 값이 온다 (기준 환율 × (1 − 우대율/100)). */
+  finalRate: number | null
+  /** currency 파라미터 전달 시에만 값이 온다. */
+  preferentialRate: number | null
+  reservationAvailable: boolean
+}
+
+/** BranchDetail.currencies 항목 — 지점이 취급하는 통화별 우대율/최종 환율/재고. */
+export interface BranchCurrencyRate {
+  currencyCode: string
+  preferentialRate: number
+  finalRate: number
+  reservationOnlyStock: number
+  updatedAt: string
+}
+
+/** GET /branches/{id} 응답 (BranchSummary 필드 + 상세 필드). */
+export interface BranchDetail extends BranchSummary {
+  phone: string
+  businessHours: string
+  pickupLocationDetail: string | null
+  timeSlotCapacity: number
+  /** 이 지점 좌표 기준 5km 반경 내에서 최저 매도 환율을 제공하는 통화가 하나라도 있으면 true. */
+  isBestRateNearby: boolean
+  active: boolean
+  currencies: BranchCurrencyRate[]
+}
+
 export type ReservationStatus = 'active' | 'completed' | 'cancelled'
 
 /** Statuses shown in exchange history, i.e. reservations that are no longer active. */
