@@ -23,6 +23,7 @@ function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
     const code = searchParams.get('code')
     const state = searchParams.get('state')
     if (!consumeOAuthStarted(state) || !code) {
+      console.error('[AuthCallback] state/code 검증 실패', { code, state })
       navigate('/login?error=oauth', { replace: true })
       return
     }
@@ -33,7 +34,8 @@ function AuthCallbackPage({ onLogin }: AuthCallbackPageProps) {
         // 신규 유저는 프로필 완성(휴대폰 인증) 화면으로 유도
         navigate(session.isNewUser ? '/register' : '/', { replace: true })
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('[AuthCallback] exchangeGoogleCode 실패', error)
         navigate('/login?error=oauth', { replace: true })
       })
   }, [searchParams, navigate, onLogin])
