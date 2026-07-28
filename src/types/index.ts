@@ -27,16 +27,6 @@ export interface PhoneVerificationResponse {
   expiresAt: string | null
 }
 
-export interface Currency {
-  code: string
-  name: string
-  pair: string
-  rate: string
-  change: string
-  range: string
-  aiNote: string
-  trend: number[]
-}
 
 export interface Branch {
   id: string
