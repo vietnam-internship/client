@@ -21,12 +21,6 @@ export interface GoogleLoginResponse {
   user: UserProfile
 }
 
-/** Response of POST /auth/verify-phone (KYC step 1). */
-export interface PhoneVerificationResponse {
-  verified: boolean
-  expiresAt: string | null
-}
-
 
 export interface Branch {
   id: string
