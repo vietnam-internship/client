@@ -80,11 +80,14 @@ function App() {
           }
         />
         <Route path="/admin" element={requireAdmin(<AdminDashboardPage />)} />
-        <Route path="/admin/rates" element={requireAdmin(<AdminRatesPage />)} />
-        <Route path="/admin/inventory" element={requireAdmin(<AdminInventoryPage />)} />
-        <Route path="/admin/reservations" element={requireAdmin(<AdminReservationsPage />)} />
-        <Route path="/admin/qr-scan" element={requireAdmin(<AdminQrScanPage />)} />
-        <Route path="/admin/settings" element={requireAdmin(<AdminSettingsPage />)} />
+        <Route path="/admin/rates" element={requireAdmin(<AdminRatesPage user={admin.user} />)} />
+        <Route path="/admin/inventory" element={requireAdmin(<AdminInventoryPage user={admin.user} />)} />
+        <Route
+          path="/admin/reservations"
+          element={requireAdmin(<AdminReservationsPage user={admin.user} />)}
+        />
+        <Route path="/admin/qr-scan" element={requireAdmin(<AdminQrScanPage user={admin.user} />)} />
+        <Route path="/admin/settings" element={requireAdmin(<AdminSettingsPage user={admin.user} />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

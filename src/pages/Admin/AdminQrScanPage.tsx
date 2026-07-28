@@ -2,9 +2,11 @@ import { useState } from 'react'
 import QrPlaceholder from '@/pages/Admin/components/QrPlaceholder'
 import { CheckIcon, XIcon } from '@/components/icons'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
+import BranchSelect from '@/pages/Admin/components/BranchSelect'
 import StatusChip from '@/pages/Admin/components/StatusChip'
 import { adminLookupReservationByQr, adminCompleteReservation, adminRejectReservation } from '@/api/admin'
-import type { AdminReservationDetail } from '@/types'
+import useAdminBranch from '@/hooks/useAdminBranch'
+import type { AdminReservationDetail, UserProfile } from '@/types'
 
 type ScanStep = 'scanning' | 'confirmed' | 'completed' | 'rejected'
 
@@ -20,18 +22,22 @@ const RESULT_MESSAGES: Record<Exclude<ScanStep, 'scanning'>, string> = {
   rejected: 'Your currency exchange reservation was rejected by the shop',
 }
 
-const BRANCH_ID = 1 // TODO(follow-up): read from BranchSelect once data/branches.ts maps to real numeric ids
+interface AdminQrScanPageProps {
+  user: UserProfile | null
+}
 
-function AdminQrScanPage() {
+function AdminQrScanPage({ user }: AdminQrScanPageProps) {
+  const { branchId, setBranchId, branches, locked } = useAdminBranch(user)
   const [step, setStep] = useState<ScanStep>('scanning')
   const [reservation, setReservation] = useState<AdminReservationDetail | null>(null)
   const [qrToken, setQrToken] = useState<string | null>(null)
 
   const handleScan = async () => {
+    if (branchId === null) return
     const token = window.prompt('Enter scanned QR token:')
     if (!token) return
     try {
-      const detail = await adminLookupReservationByQr(BRANCH_ID, token)
+      const detail = await adminLookupReservationByQr(branchId, token)
       setReservation(detail)
       setQrToken(token)
       setStep('confirmed')
@@ -41,20 +47,26 @@ function AdminQrScanPage() {
   }
 
   const handleComplete = async () => {
-    if (!reservation || !qrToken) return
-    await adminCompleteReservation(BRANCH_ID, reservation.id, qrToken)
+    if (!reservation || !qrToken || branchId === null) return
+    await adminCompleteReservation(branchId, reservation.id, qrToken)
     setStep('completed')
   }
 
   const handleReject = async () => {
-    if (!reservation) return
-    await adminRejectReservation(BRANCH_ID, reservation.id)
+    if (!reservation || branchId === null) return
+    await adminRejectReservation(branchId, reservation.id)
     setStep('rejected')
   }
 
   if (step === 'scanning' || !reservation) {
     return (
       <AdminLayout active="qr-scan" title="Reservations" subtitle="Review and manage bookings">
+        {!locked && (
+          <div className="mt-6">
+            <BranchSelect branches={branches} value={branchId} onChange={setBranchId} />
+          </div>
+        )}
+
         <section className="mt-8 rounded-lg border border-primary px-6 py-7">
           <h2 className="text-[18px] font-bold text-gray-900">Please show the QR code</h2>
           <button
