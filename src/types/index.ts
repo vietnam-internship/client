@@ -134,6 +134,14 @@ export interface ReservationDetail extends ReservationSummary {
   paymentClientSecret: string | null
 }
 
+/** POST /branches/{id}/reservations/{reservationId}/redeem 응답 (ADMIN 전용). */
+export interface RedeemResponse {
+  reservationId: number
+  status: ServerReservationStatus
+  pickedUpAt: string | null
+  summary: ReservationDetail
+}
+
 export interface ReservationPage {
   content: ReservationSummary[]
   page: number

@@ -1,19 +1,13 @@
-import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import type { UserProfile } from '@/types'
 
 interface AdminLoginPageProps {
-  onLogin: () => void
+  isLoggedIn: boolean
+  user: UserProfile | null
 }
 
-function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
-  const navigate = useNavigate()
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    onLogin()
-    navigate('/admin', { replace: true })
-  }
-
+// 별도 관리자 로그인 API가 없어 기존 Google OAuth + JWT 세션의 role만으로 접근을 가른다.
+function AdminLoginPage({ isLoggedIn, user }: AdminLoginPageProps) {
   return (
     <div className="flex w-full flex-1">
       <aside className="relative hidden w-[54%] flex-col bg-primary px-14 pt-36 text-white md:flex">
@@ -30,56 +24,38 @@ function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
         </span>
       </aside>
 
-      <main className="flex flex-1 justify-center px-8 pt-36">
-        <form onSubmit={handleSubmit} className="w-full max-w-[470px]">
-          <h2 className="text-[24px] font-bold text-gray-900">Admin login</h2>
-          <p className="mt-3 text-[13px] text-gray-500">Sign in with your TravelX admin account.</p>
-
-          <label className="mt-10 block">
-            <span className="mb-2 block text-[12px] text-gray-600">Email address</span>
-            <input
-              type="email"
-              name="email"
-              required
-              placeholder="travelx.admin@system.com"
-              className="h-11 w-full rounded-lg border border-gray-200 px-3.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none"
-            />
-          </label>
-
-          <label className="mt-5 block">
-            <span className="mb-2 flex items-center justify-between text-[12px]">
-              <span className="text-gray-600">Password</span>
-              <a href="#" className="font-medium text-blue-700 hover:underline">
-                Forgot password?
-              </a>
-            </span>
-            <input
-              type="password"
-              name="password"
-              required
-              placeholder="***"
-              className="h-11 w-full rounded-lg border border-gray-200 px-3.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none"
-            />
-          </label>
-
-          <label className="mt-16 flex items-center gap-3">
-            <input
-              type="checkbox"
-              className="h-[18px] w-[18px] shrink-0 cursor-pointer rounded border-gray-300 accent-primary"
-            />
-            <span className="text-[13px] text-gray-600">Keep me signed in on this device</span>
-          </label>
-
-          <button
-            type="submit"
-            className="mt-8 h-12 w-full cursor-pointer rounded-lg bg-primary text-[14px] font-bold text-white transition-opacity hover:opacity-90"
-          >
-            Log in
-          </button>
-          <p className="mt-3 text-center text-[12px] text-gray-400">
-            Need access? Contact your system administrator.
-          </p>
-        </form>
+      <main className="flex flex-1 flex-col justify-center px-8">
+        <div className="w-full max-w-[420px]">
+          {!isLoggedIn ? (
+            <>
+              <h2 className="text-[24px] font-bold text-gray-900">Admin login</h2>
+              <p className="mt-3 text-[13px] text-gray-500">
+                Sign in with your TravelX account to continue. Access is granted to admin
+                accounts only.
+              </p>
+              <Link
+                to="/login"
+                className="mt-8 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+              >
+                Sign in with Google
+              </Link>
+            </>
+          ) : (
+            <>
+              <h2 className="text-[24px] font-bold text-gray-900">Access required</h2>
+              <p className="mt-3 text-[13px] text-gray-500">
+                {user?.email}은(는) 관리자 권한이 없습니다. 관리자 계정으로 다시 로그인하거나
+                시스템 관리자에게 권한을 요청하세요.
+              </p>
+              <Link
+                to="/"
+                className="mt-8 flex h-12 w-full items-center justify-center rounded-lg border border-gray-200 text-[14px] font-bold text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                Back to TravelX
+              </Link>
+            </>
+          )}
+        </div>
       </main>
     </div>
   )
