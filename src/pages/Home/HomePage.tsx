@@ -1,11 +1,13 @@
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import NotificationPanel from '@/components/NotificationPanel'
 import PageLayout from '@/components/PageLayout'
 import { BellIcon, SearchIcon } from '@/components/icons'
 import useDisclosure from '@/hooks/useDisclosure'
-import type { Notification, Rate } from '@/types'
+import type { Notification } from '@/types'
+import { getCurrencies, type CurrencySummary } from '@/api/currency'
 import AiReportCard from '@/pages/Home/components/AiReportCard'
 import PickupCard from '@/pages/Home/components/PickupCard'
 import RateCard from '@/pages/Home/components/RateCard'
@@ -28,15 +30,16 @@ const NOTIFICATIONS: Notification[] = [
   },
 ]
 
-const RATES: Rate[] = [
-  { code: 'USD', name: 'US Dollar', value: '1,342.50', change: '-2.40' },
-  { code: 'JPY (100¥)', name: 'Japanese yen', value: '894.20', change: '-0.15' },
-  { code: 'EUR', name: 'Euro', value: '1,452.12', change: '-0.00' },
-]
-
 function HomePage() {
   const navigate = useNavigate()
   const notification = useDisclosure()
+  const [currencies, setCurrencies] = useState<CurrencySummary[]>([])
+
+  useEffect(() => {
+    getCurrencies()
+      .then((data) => setCurrencies((data.popularCurrencies ?? data.results).slice(0, 5)))
+      .catch(() => setCurrencies([]))
+  }, [])
 
   return (
     <PageLayout className="relative">
@@ -84,8 +87,15 @@ function HomePage() {
           </div>
 
           <ul className="mt-2 flex flex-col gap-2.5">
-            {RATES.map((rate) => (
-              <RateCard key={rate.code} {...rate} />
+            {currencies.map((currency) => (
+              <Link key={currency.code} to={`/currency/${currency.code.toLowerCase()}`}>
+                <RateCard
+                  code={currency.code}
+                  name={currency.country}
+                  value={currency.sellRate.toLocaleString('en-US')}
+                  change=""
+                />
+              </Link>
             ))}
           </ul>
         </section>

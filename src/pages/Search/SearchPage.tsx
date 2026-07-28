@@ -1,25 +1,37 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import ListRowLink from '@/components/ListRowLink'
 import PageLayout from '@/components/PageLayout'
 import { ArrowLeftIcon, ChevronRightIcon, SearchIcon } from '@/components/icons'
-import { CURRENCIES } from '@/data/currencies'
+import { getCurrencies, type CurrencySummary } from '@/api/currency'
 import useRecentSearches from '@/hooks/useRecentSearches'
 import RecentSearches from '@/pages/Search/components/RecentSearches'
 
 function SearchPage() {
   const [query, setQuery] = useState('')
+  const [displayList, setDisplayList] = useState<CurrencySummary[]>([])
+  const [loading, setLoading] = useState(true)
   const { recent, addRecent, removeRecent, clearRecent } = useRecentSearches()
 
-  const normalized = query.trim().toLowerCase()
-  const results = normalized
-    ? CURRENCIES.filter(
-        (currency) =>
-          currency.code.toLowerCase().includes(normalized) ||
-          currency.name.toLowerCase().includes(normalized),
-      )
-    : CURRENCIES
+  useEffect(() => {
+    const trimmed = query.trim()
+    setLoading(true)
+    const timer = setTimeout(
+      () => {
+        getCurrencies(trimmed || undefined)
+          .then((data) => {
+            setDisplayList(
+              trimmed ? data.results : (data.popularCurrencies ?? data.results),
+            )
+          })
+          .catch(() => setDisplayList([]))
+          .finally(() => setLoading(false))
+      },
+      trimmed ? 300 : 0,
+    )
+    return () => clearTimeout(timer)
+  }, [query])
 
   return (
     <PageLayout>
@@ -41,28 +53,36 @@ function SearchPage() {
       </header>
 
       <main className="flex-1 px-4 pb-28">
-        {!normalized && (
+        {!query.trim() && (
           <div className="mt-6">
             <RecentSearches items={recent} onRemove={removeRecent} onClear={clearRecent} />
           </div>
         )}
 
         <h2 className="mt-8 text-[15px] font-bold text-gray-900">
-          {normalized ? 'Search results' : 'Popular currencies'}
+          {query.trim() ? 'Search results' : 'Popular currencies'}
         </h2>
-        <ul className="mt-2">
-          {results.map((currency) => (
-            <ListRowLink
-              key={currency.code}
-              to={`/currency/${currency.code.toLowerCase()}`}
-              onClick={() => addRecent(currency.code)}
-              className="py-[11px]"
-              title={currency.code}
-              subtitle={currency.name}
-              right={<ChevronRightIcon className="h-5 w-5 shrink-0 text-gray-300" />}
-            />
-          ))}
-        </ul>
+
+        {loading ? (
+          <p className="mt-4 text-[13px] text-gray-400">Loading...</p>
+        ) : (
+          <ul className="mt-2">
+            {displayList.map((currency) => (
+              <ListRowLink
+                key={currency.code}
+                to={`/currency/${currency.code.toLowerCase()}`}
+                onClick={() => addRecent(currency.code)}
+                className="py-[11px]"
+                title={currency.code}
+                subtitle={currency.country}
+                right={<ChevronRightIcon className="h-5 w-5 shrink-0 text-gray-300" />}
+              />
+            ))}
+            {displayList.length === 0 && (
+              <p className="mt-4 text-[13px] text-gray-400">No results found.</p>
+            )}
+          </ul>
+        )}
       </main>
 
       <BottomNav active="home" />

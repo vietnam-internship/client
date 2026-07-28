@@ -1,23 +1,90 @@
+import { useEffect, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import ListRowLink from '@/components/ListRowLink'
 import PageLayout from '@/components/PageLayout'
 import { ExchangeIcon } from '@/components/icons'
-import { BRANCHES } from '@/data/branches'
-import { findCurrency } from '@/data/currencies'
+import {
+  getCurrencyDetail,
+  getCurrencyHistory,
+  getTimingRecommendation,
+  type CurrencyDetailResponse,
+  type RateHistoryEntry,
+  type TimingRecommendation,
+} from '@/api/currency'
+import { listBranches } from '@/api/branch'
+import type { BranchSummary } from '@/types'
 import AiRecommendationCard from '@/pages/CurrencyDetail/components/AiRecommendationCard'
 import RateTrendChart from '@/pages/CurrencyDetail/components/RateTrendChart'
 
 function CurrencyDetailPage() {
-  const { code } = useParams()
-  const currency = findCurrency(code)
+  const { code } = useParams<{ code: string }>()
+  const upperCode = code?.toUpperCase() ?? ''
 
-  if (!currency) {
-    return <Navigate to="/search" replace />
+  const [detail, setDetail] = useState<CurrencyDetailResponse | null>(null)
+  const [history, setHistory] = useState<RateHistoryEntry[]>([])
+  const [recommendation, setRecommendation] = useState<TimingRecommendation | null>(null)
+  const [branches, setBranches] = useState<BranchSummary[]>([])
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+
+  useEffect(() => {
+    if (!upperCode) return
+    setLoading(true)
+    Promise.all([
+      getCurrencyDetail(upperCode),
+      getCurrencyHistory(upperCode, 7),
+      getTimingRecommendation(upperCode),
+      listBranches({ currency: upperCode }),
+    ])
+      .then(([d, h, r, b]) => {
+        setDetail(d)
+        setHistory(h)
+        setRecommendation(r)
+        setBranches(b.slice(0, 4))
+      })
+      .catch((err) => {
+        if (err?.status === 404) setNotFound(true)
+      })
+      .finally(() => setLoading(false))
+  }, [upperCode])
+
+  if (notFound) return <Navigate to="/search" replace />
+
+  if (loading) {
+    return (
+      <PageLayout>
+        <Header backTo="/search" />
+        <main className="flex-1 px-4 pb-28 pt-8">
+          <p className="text-[14px] text-gray-400">Loading...</p>
+        </main>
+        <BottomNav active="exchange" />
+      </PageLayout>
+    )
   }
 
-  const isUp = currency.change.startsWith('+')
+  if (!detail) return null
+
+  const rates = history.map((h) => h.rate)
+  const trendPoints = rates.length > 0 ? rates : [detail.sellRate]
+
+  const latestRate = rates.at(-1) ?? detail.sellRate
+  const prevRate = rates.at(-2) ?? detail.sellRate
+  const change = latestRate - prevRate
+  const changePct = prevRate !== 0 ? (change / prevRate) * 100 : 0
+  const changeStr =
+    rates.length >= 2
+      ? `${change >= 0 ? '+' : ''}${change.toFixed(2)} (${Math.abs(changePct).toFixed(2)}%)`
+      : ''
+  const isUp = change >= 0
+
+  const rangeStr =
+    rates.length > 0
+      ? `${Math.min(...rates).toFixed(2)} - ${Math.max(...rates).toFixed(2)}`
+      : ''
+
+  const startLabel = history.at(0)?.date.slice(5).replace('-', '/') ?? ''
 
   return (
     <PageLayout>
@@ -29,31 +96,39 @@ function CurrencyDetailPage() {
             <ExchangeIcon className="h-4 w-4 text-gray-500" />
           </span>
           <div className="flex-1">
-            <h1 className="text-[16px] font-bold text-gray-900">{currency.pair}</h1>
-            <p className="text-[12px] text-gray-400">{currency.name}</p>
+            <h1 className="text-[16px] font-bold text-gray-900">{upperCode} / KRW</h1>
+            <p className="text-[12px] text-gray-400">{detail.country}</p>
           </div>
           <div className="text-right">
-            <p className="text-[18px] font-bold text-gray-900">{currency.rate}</p>
-            <p className={`text-[11px] font-medium ${isUp ? 'text-green-600' : 'text-red-500'}`}>
-              {currency.change}
+            <p className="text-[18px] font-bold text-gray-900">
+              {detail.sellRate.toLocaleString('en-US')}
             </p>
+            {changeStr && (
+              <p className={`text-[11px] font-medium ${isUp ? 'text-green-600' : 'text-red-500'}`}>
+                {changeStr}
+              </p>
+            )}
           </div>
         </section>
 
-        <div className="mt-3">
-          <AiRecommendationCard note={currency.aiNote} />
-        </div>
+        {recommendation && recommendation.signal !== 'COLLECTING_DATA' && (
+          <div className="mt-3">
+            <AiRecommendationCard recommendation={recommendation} />
+          </div>
+        )}
 
         <section className="mt-4">
           <h2 className="text-[14px] font-bold text-gray-900">7-day rate trend</h2>
-          <p className="mt-1 text-[12px] text-gray-400">Range: {currency.range}</p>
+          {rangeStr && <p className="mt-1 text-[12px] text-gray-400">Range: {rangeStr}</p>}
           <div className="mt-3">
-            <RateTrendChart points={currency.trend} />
+            <RateTrendChart points={trendPoints} />
           </div>
-          <div className="mt-2 flex justify-between text-[10px] text-gray-400">
-            <span>05/18</span>
-            <span>Today</span>
-          </div>
+          {startLabel && (
+            <div className="mt-2 flex justify-between text-[10px] text-gray-400">
+              <span>{startLabel}</span>
+              <span>Today</span>
+            </div>
+          )}
         </section>
 
         <section className="mt-6">
@@ -61,15 +136,17 @@ function CurrencyDetailPage() {
             Recommended nearby branches by AI
           </h2>
           <ul className="mt-1">
-            {BRANCHES.map((branch) => (
+            {branches.map((branch) => (
               <ListRowLink
                 key={branch.id}
                 to={`/branch/${branch.id}`}
                 className="py-2.5"
                 title={branch.name}
-                subtitle={branch.distance}
+                subtitle={branch.distanceKm != null ? `${branch.distanceKm}km` : ''}
                 right={
-                  <span className="text-[13px] font-bold text-gray-900">{branch.listRate}</span>
+                  <span className="text-[13px] font-bold text-gray-900">
+                    {branch.finalRate?.toLocaleString('en-US') ?? ''}
+                  </span>
                 }
               />
             ))}
