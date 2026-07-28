@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
@@ -14,9 +14,20 @@ import {
   type TimingRecommendation,
 } from '@/api/currency'
 import { listBranches } from '@/api/branch'
+import {
+  createBranchRecommendation,
+  getBranchRecommendation,
+  recordRecommendationClick,
+  type BranchRecommendation,
+} from '@/api/branchRecommendation'
 import type { BranchSummary } from '@/types'
 import AiRecommendationCard from '@/pages/CurrencyDetail/components/AiRecommendationCard'
 import RateTrendChart from '@/pages/CurrencyDetail/components/RateTrendChart'
+
+const POLL_INTERVAL_MS = 2000
+const POLL_TIMEOUT_MS = 30000
+const DEFAULT_AMOUNT = 100
+const DEFAULT_RADIUS_KM = 5
 
 function CurrencyDetailPage() {
   const { code } = useParams<{ code: string }>()
@@ -25,9 +36,57 @@ function CurrencyDetailPage() {
   const [detail, setDetail] = useState<CurrencyDetailResponse | null>(null)
   const [history, setHistory] = useState<RateHistoryEntry[]>([])
   const [recommendation, setRecommendation] = useState<TimingRecommendation | null>(null)
-  const [branches, setBranches] = useState<BranchSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+
+  const [aiRecommendations, setAiRecommendations] = useState<BranchRecommendation[]>([])
+  const [fallbackBranches, setFallbackBranches] = useState<BranchSummary[]>([])
+  const [branchDisclaimer, setBranchDisclaimer] = useState<string | null>(null)
+  const [branchLoading, setBranchLoading] = useState(true)
+
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const stopPolling = () => {
+    if (pollRef.current) clearInterval(pollRef.current)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+  }
+
+  const fetchFallbackBranches = () => {
+    listBranches({ currency: upperCode })
+      .then((b) => setFallbackBranches(b.slice(0, 4)))
+      .catch(() => {})
+      .finally(() => setBranchLoading(false))
+  }
+
+  const startPolling = (sessionId: number) => {
+    const poll = () => {
+      getBranchRecommendation(sessionId)
+        .then((res) => {
+          if (res.status === 'COMPLETED') {
+            stopPolling()
+            setAiRecommendations(res.results.slice(0, 4))
+            setBranchDisclaimer(res.disclaimer)
+            setBranchLoading(false)
+          } else if (res.status === 'FAILED') {
+            stopPolling()
+            fetchFallbackBranches()
+          }
+        })
+        .catch(() => {
+          stopPolling()
+          fetchFallbackBranches()
+        })
+    }
+
+    pollRef.current = setInterval(poll, POLL_INTERVAL_MS)
+    poll()
+
+    timeoutRef.current = setTimeout(() => {
+      stopPolling()
+      fetchFallbackBranches()
+    }, POLL_TIMEOUT_MS)
+  }
 
   useEffect(() => {
     if (!upperCode) return
@@ -36,18 +95,46 @@ function CurrencyDetailPage() {
       getCurrencyDetail(upperCode),
       getCurrencyHistory(upperCode, 7),
       getTimingRecommendation(upperCode),
-      listBranches({ currency: upperCode }),
     ])
-      .then(([d, h, r, b]) => {
+      .then(([d, h, r]) => {
         setDetail(d)
         setHistory(h)
         setRecommendation(r)
-        setBranches(b.slice(0, 4))
       })
       .catch((err) => {
         if (err?.status === 404) setNotFound(true)
       })
       .finally(() => setLoading(false))
+  }, [upperCode])
+
+  useEffect(() => {
+    if (!upperCode) return
+    setBranchLoading(true)
+    setAiRecommendations([])
+    setFallbackBranches([])
+
+    if (!navigator.geolocation) {
+      fetchFallbackBranches()
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        createBranchRecommendation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          radiusKm: DEFAULT_RADIUS_KM,
+          currency: upperCode,
+          amount: DEFAULT_AMOUNT,
+        })
+          .then(({ sessionId }) => startPolling(sessionId))
+          .catch(() => fetchFallbackBranches())
+      },
+      () => fetchFallbackBranches(),
+      { timeout: 5000 },
+    )
+
+    return () => stopPolling()
   }, [upperCode])
 
   if (notFound) return <Navigate to="/search" replace />
@@ -97,6 +184,9 @@ function CurrencyDetailPage() {
     const mmdd = h.date.slice(5).replace('-', '/')
     return h.date === todayStr ? `${mmdd}` : mmdd
   })
+
+  const isAiResult = aiRecommendations.length > 0
+  const displayBranches = isAiResult ? aiRecommendations : fallbackBranches
 
   return (
     <PageLayout>
@@ -163,22 +253,39 @@ function CurrencyDetailPage() {
           <h2 className="text-[14px] font-bold text-gray-900">
             Recommended nearby branches by AI
           </h2>
-          <ul className="mt-1">
-            {branches.map((branch) => (
-              <ListRowLink
-                key={branch.id}
-                to={`/branch/${branch.id}`}
-                className="py-2.5"
-                title={branch.name}
-                subtitle={branch.distanceKm != null ? `${branch.distanceKm}km` : ''}
-                right={
-                  <span className="text-[13px] font-bold text-gray-900">
-                    {branch.finalRate?.toLocaleString('en-US') ?? ''}
-                  </span>
-                }
-              />
-            ))}
-          </ul>
+
+          {branchLoading ? (
+            <p className="mt-3 text-[13px] text-gray-400">Finding best branches nearby...</p>
+          ) : (
+            <>
+              <ul className="mt-1">
+                {displayBranches.map((branch) => (
+                  <ListRowLink
+                    key={branch.id}
+                    to={`/branch/${branch.id}`}
+                    onClick={() => {
+                      if (isAiResult) recordRecommendationClick(branch.id).catch(() => {})
+                    }}
+                    className="py-2.5"
+                    title={
+                      isAiResult
+                        ? `${(branch as BranchRecommendation).ranking}. ${branch.name}${(branch as BranchRecommendation).isBestRateNearby ? ' ★' : ''}`
+                        : branch.name
+                    }
+                    subtitle={branch.distanceKm != null ? `${branch.distanceKm}km` : ''}
+                    right={
+                      <span className="text-[13px] font-bold text-gray-900">
+                        {branch.finalRate?.toLocaleString('en-US') ?? ''}
+                      </span>
+                    }
+                  />
+                ))}
+              </ul>
+              {branchDisclaimer && (
+                <p className="mt-2 text-[10px] text-gray-400">{branchDisclaimer}</p>
+              )}
+            </>
+          )}
         </section>
       </main>
 
