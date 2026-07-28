@@ -69,6 +69,14 @@ function CurrencyDetailPage() {
   const rates = history.map((h) => h.rate)
   const trendPoints = rates.length > 0 ? rates : [detail.sellRate]
 
+  const ma7Points =
+    rates.length > 1
+      ? rates.map((_, i) => {
+          const window = rates.slice(Math.max(0, i - 6), i + 1)
+          return window.reduce((sum, r) => sum + r, 0) / window.length
+        })
+      : undefined
+
   const latestRate = rates.at(-1) ?? detail.sellRate
   const prevRate = rates.at(-2) ?? detail.sellRate
   const change = latestRate - prevRate
@@ -84,7 +92,11 @@ function CurrencyDetailPage() {
       ? `${Math.min(...rates).toFixed(2)} - ${Math.max(...rates).toFixed(2)}`
       : ''
 
-  const startLabel = history.at(0)?.date.slice(5).replace('-', '/') ?? ''
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const dateLabels = history.map((h) => {
+    const mmdd = h.date.slice(5).replace('-', '/')
+    return h.date === todayStr ? `${mmdd}` : mmdd
+  })
 
   return (
     <PageLayout>
@@ -121,12 +133,28 @@ function CurrencyDetailPage() {
           <h2 className="text-[14px] font-bold text-gray-900">7-day rate trend</h2>
           {rangeStr && <p className="mt-1 text-[12px] text-gray-400">Range: {rangeStr}</p>}
           <div className="mt-3">
-            <RateTrendChart points={trendPoints} />
+            <RateTrendChart points={trendPoints} ma7Points={ma7Points} />
           </div>
-          {startLabel && (
-            <div className="mt-2 flex justify-between text-[10px] text-gray-400">
-              <span>{startLabel}</span>
-              <span>Today</span>
+          {dateLabels.length > 0 && (
+            <div className="relative mt-1 h-4">
+              {dateLabels.map((label, i) => {
+                const pct = dateLabels.length > 1 ? (i / (dateLabels.length - 1)) * 100 : 0
+                const isFirst = i === 0
+                const isLast = i === dateLabels.length - 1
+                return (
+                  <span
+                    key={label}
+                    className="absolute text-[10px] text-gray-400 whitespace-nowrap"
+                    style={{
+                      left: isLast ? undefined : `${pct}%`,
+                      right: isLast ? '0%' : undefined,
+                      transform: isFirst || isLast ? undefined : 'translateX(-50%)',
+                    }}
+                  >
+                    {label}
+                  </span>
+                )
+              })}
             </div>
           )}
         </section>
