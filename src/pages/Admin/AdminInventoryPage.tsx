@@ -2,25 +2,30 @@ import { useEffect, useState } from 'react'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
 import BranchSelect from '@/pages/Admin/components/BranchSelect'
 import { adminGetInventory, adminUpdateInventory } from '@/api/admin'
-import type { AdminInventoryRow } from '@/types'
+import useAdminBranch from '@/hooks/useAdminBranch'
+import type { AdminInventoryRow, UserProfile } from '@/types'
 
-const BRANCH_ID = 1 // TODO(follow-up): map BranchSelect's string id to a real numeric branch id
+interface AdminInventoryPageProps {
+  user: UserProfile | null
+}
 
-function AdminInventoryPage() {
-  const [branchId, setBranchId] = useState('incheon-t1')
+function AdminInventoryPage({ user }: AdminInventoryPageProps) {
+  const { branchId, setBranchId, branches, locked } = useAdminBranch(user)
   const [rows, setRows] = useState<AdminInventoryRow[]>([])
 
   useEffect(() => {
-    adminGetInventory(BRANCH_ID).then(setRows).catch(() => setRows([]))
-  }, [])
+    if (branchId === null) return
+    adminGetInventory(branchId).then(setRows).catch(() => setRows([]))
+  }, [branchId])
 
   const updateStock = (currencyCode: string, stock: number) => {
     setRows((prev) => prev.map((r) => (r.currencyCode === currencyCode ? { ...r, stock } : r)))
   }
 
   const handleSave = async () => {
+    if (branchId === null) return
     const updated = await adminUpdateInventory(
-      BRANCH_ID,
+      branchId,
       rows.map((r) => ({ currencyCode: r.currencyCode, stock: r.stock })),
     )
     setRows(updated)
@@ -28,9 +33,11 @@ function AdminInventoryPage() {
 
   return (
     <AdminLayout active="inventory" title="Inventory" subtitle="Track and adjust currency stock">
-      <div className="mt-10">
-        <BranchSelect value={branchId} onChange={setBranchId} />
-      </div>
+      {!locked && (
+        <div className="mt-10">
+          <BranchSelect branches={branches} value={branchId} onChange={setBranchId} />
+        </div>
+      )}
 
       <ul className="mt-14">
         {rows.map(({ currencyCode, stock, lowStock }) => (

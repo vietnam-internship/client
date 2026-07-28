@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
+import BranchSelect from '@/pages/Admin/components/BranchSelect'
 import { getBranch } from '@/api/branch'
 import { adminUpdateBranchSettings } from '@/api/admin'
-import type { BranchDetail } from '@/types'
+import useAdminBranch from '@/hooks/useAdminBranch'
+import type { BranchDetail, UserProfile } from '@/types'
 
 type Meridiem = 'AM' | 'PM'
 
@@ -35,8 +37,6 @@ function MeridiemToggle({ value, onChange }: TimeFieldProps) {
 const INPUT_CLASS =
   'h-11 rounded-lg border border-blue-300 px-3.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none'
 
-const BRANCH_ID = 1 // TODO(follow-up): read the signed-in BRANCH_ADMIN's own branch once that flow exists
-
 function to24Hour(time: string, meridiem: Meridiem): string {
   const [hourStr, minuteStr] = time.split(':')
   let hour = Number(hourStr) % 12
@@ -44,7 +44,12 @@ function to24Hour(time: string, meridiem: Meridiem): string {
   return `${String(hour).padStart(2, '0')}:${minuteStr ?? '00'}`
 }
 
-function AdminSettingsPage() {
+interface AdminSettingsPageProps {
+  user: UserProfile | null
+}
+
+function AdminSettingsPage({ user }: AdminSettingsPageProps) {
+  const { branchId, setBranchId, branches, locked } = useAdminBranch(user)
   const [branch, setBranch] = useState<BranchDetail | null>(null)
   const [name, setName] = useState('')
   const [latitude, setLatitude] = useState('')
@@ -56,16 +61,18 @@ function AdminSettingsPage() {
   const [slotCapacity, setSlotCapacity] = useState('')
 
   useEffect(() => {
-    getBranch(BRANCH_ID).then((detail) => {
+    if (branchId === null) return
+    getBranch(branchId).then((detail) => {
       setBranch(detail)
       setLatitude(String(detail.latitude))
       setLongitude(String(detail.longitude))
       setSlotCapacity(String(detail.timeSlotCapacity))
     })
-  }, [])
+  }, [branchId])
 
   const handleSave = async () => {
-    await adminUpdateBranchSettings(BRANCH_ID, {
+    if (branchId === null) return
+    await adminUpdateBranchSettings(branchId, {
       name: name || undefined,
       latitude: latitude ? Number(latitude) : undefined,
       longitude: longitude ? Number(longitude) : undefined,
@@ -81,6 +88,12 @@ function AdminSettingsPage() {
       title="Exchange Shop Information"
       subtitle="Track and adjust currency stock"
     >
+      {!locked && (
+        <div className="mt-10">
+          <BranchSelect branches={branches} value={branchId} onChange={setBranchId} />
+        </div>
+      )}
+
       <div className="mt-24 border-t border-gray-200">
         <div className="flex items-center justify-between border-b border-gray-200 py-6 pl-7">
           <span className="text-[15px] font-bold text-gray-900">Name</span>

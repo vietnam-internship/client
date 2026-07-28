@@ -2,25 +2,30 @@ import { useEffect, useState } from 'react'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
 import BranchSelect from '@/pages/Admin/components/BranchSelect'
 import { adminGetRates, adminUpdateRates } from '@/api/admin'
-import type { AdminRateRow } from '@/types'
+import useAdminBranch from '@/hooks/useAdminBranch'
+import type { AdminRateRow, UserProfile } from '@/types'
 
-const BRANCH_ID = 1 // TODO(follow-up): map BranchSelect's string id to a real numeric branch id
+interface AdminRatesPageProps {
+  user: UserProfile | null
+}
 
-function AdminRatesPage() {
-  const [branchId, setBranchId] = useState('incheon-t1')
+function AdminRatesPage({ user }: AdminRatesPageProps) {
+  const { branchId, setBranchId, branches, locked } = useAdminBranch(user)
   const [rows, setRows] = useState<AdminRateRow[]>([])
 
   useEffect(() => {
-    adminGetRates(BRANCH_ID).then(setRows).catch(() => setRows([]))
-  }, [])
+    if (branchId === null) return
+    adminGetRates(branchId).then(setRows).catch(() => setRows([]))
+  }, [branchId])
 
   const updateFee = (currencyCode: string, feePercent: number) => {
     setRows((prev) => prev.map((r) => (r.currencyCode === currencyCode ? { ...r, feePercent } : r)))
   }
 
   const handleSave = async () => {
+    if (branchId === null) return
     const updated = await adminUpdateRates(
-      BRANCH_ID,
+      branchId,
       rows.map((r) => ({ currencyCode: r.currencyCode, feePercent: r.feePercent })),
     )
     setRows(updated)
@@ -28,9 +33,11 @@ function AdminRatesPage() {
 
   return (
     <AdminLayout active="rates" title="Exchange Rates" subtitle="Set today's buy/sell rates by branch">
-      <div className="mt-10">
-        <BranchSelect value={branchId} onChange={setBranchId} />
-      </div>
+      {!locked && (
+        <div className="mt-10">
+          <BranchSelect branches={branches} value={branchId} onChange={setBranchId} />
+        </div>
+      )}
 
       <ul className="mt-2">
         {rows.map(({ currencyCode, buyRate, sellRate, feePercent }) => (

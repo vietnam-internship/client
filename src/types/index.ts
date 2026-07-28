@@ -10,6 +10,8 @@ export interface UserProfile {
   phone: string | null
   phoneVerified: boolean
   role: string
+  /** BRANCH_ADMIN만 값이 온다 — 자기 소속 지점. */
+  branchId: number | null
 }
 
 /** Response of GET /auth/google/callback — JWT issued after Google OAuth2 login. */

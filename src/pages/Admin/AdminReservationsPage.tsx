@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { SearchIcon } from '@/components/icons'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
+import BranchSelect from '@/pages/Admin/components/BranchSelect'
 import StatusChip, { type ChipStatus } from '@/pages/Admin/components/StatusChip'
 import { adminListReservations } from '@/api/admin'
-import type { AdminReservationSummary } from '@/types'
+import useAdminBranch from '@/hooks/useAdminBranch'
+import type { AdminReservationSummary, UserProfile } from '@/types'
 
 const FILTERS = [
   { value: 'ALL', label: 'ALL' },
@@ -14,9 +16,12 @@ const FILTERS = [
 
 type FilterValue = (typeof FILTERS)[number]['value']
 
-const BRANCH_ID = 1 // TODO(follow-up): read from BranchSelect once data/branches.ts maps to real numeric ids
+interface AdminReservationsPageProps {
+  user: UserProfile | null
+}
 
-function AdminReservationsPage() {
+function AdminReservationsPage({ user }: AdminReservationsPageProps) {
+  const { branchId, setBranchId, branches, locked } = useAdminBranch(user)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<FilterValue>('ALL')
   const [page, setPage] = useState(0)
@@ -24,16 +29,23 @@ function AdminReservationsPage() {
   const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
-    adminListReservations(BRANCH_ID, { status: filter, q: query || undefined, page })
+    if (branchId === null) return
+    adminListReservations(branchId, { status: filter, q: query || undefined, page })
       .then((res) => {
         setResults(res.reservations)
         setTotalPages(res.totalPages)
       })
       .catch(() => setResults([]))
-  }, [filter, query, page])
+  }, [branchId, filter, query, page])
 
   return (
     <AdminLayout active="reservations" title="Reservations" subtitle="Review and manage bookings">
+      {!locked && (
+        <div className="mt-6">
+          <BranchSelect branches={branches} value={branchId} onChange={setBranchId} />
+        </div>
+      )}
+
       <div className="relative mt-6">
         <SearchIcon className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
