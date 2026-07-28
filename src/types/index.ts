@@ -140,3 +140,64 @@ export interface Rate {
   value: string
   change: string
 }
+
+export interface AdminPopularCurrency {
+  currencyCode: string
+  count: number
+}
+
+export type AdminReservationStatus = 'pending' | 'completed' | 'cancelled'
+
+export interface AdminRecentReservation {
+  customerName: string
+  currencyPair: string
+  amount: number
+  status: AdminReservationStatus
+}
+
+export interface AdminDashboardResponse {
+  totalUsers: number
+  pendingReservationsCount: number
+  popularCurrencies: AdminPopularCurrency[]
+  recentReservations: AdminRecentReservation[]
+}
+
+export interface AdminReservationSummary {
+  id: number
+  reservationNumber: string
+  customerName: string
+  currencyPair: string
+  amount: number
+  status: AdminReservationStatus
+}
+
+export interface AdminReservationListResponse {
+  reservations: AdminReservationSummary[]
+  page: number
+  totalPages: number
+  totalElements: number
+}
+
+export interface AdminReservationDetail {
+  id: number
+  reservationNumber: string
+  customerName: string
+  currencyPair: string
+  amount: number
+  status: AdminReservationStatus
+  branchName: string
+  pickupDetail: string
+}
+
+export interface AdminRateRow {
+  currencyCode: string
+  buyRate: number | null
+  sellRate: number | null
+  feePercent: number
+}
+
+export interface AdminInventoryRow {
+  currencyCode: string
+  stock: number
+  lowStock: boolean
+}

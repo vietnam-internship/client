@@ -2,6 +2,10 @@ export const ACCESS_TOKEN_KEY = 'travelx.accessToken'
 
 export const AUTH_USER_KEY = 'travelx.user'
 
+export const ADMIN_ACCESS_TOKEN_KEY = 'travelx.admin.accessToken'
+
+export const ADMIN_USER_KEY = 'travelx.admin.user'
+
 export const OAUTH_STATE_KEY = 'travelx.oauthState'
 
 export const RECENT_SEARCHES_KEY = 'travelx.recentSearches'

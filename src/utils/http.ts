@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '@/constants/api'
-import { ACCESS_TOKEN_KEY, AUTH_USER_KEY } from '@/constants/storage'
+import { ACCESS_TOKEN_KEY, AUTH_USER_KEY, ADMIN_ACCESS_TOKEN_KEY, ADMIN_USER_KEY } from '@/constants/storage'
 
 /**
  * Thrown for any non-2xx response so callers can branch on `status` or `code`.
@@ -20,12 +20,25 @@ export class HttpError extends Error {
   }
 }
 
+/** Which localStorage keys/redirect target a given `http()` call's session belongs to. */
+export interface HttpAuthConfig {
+  tokenKey: string
+  userKey: string
+  loginPath: string
+}
+
+/** Regular customer session (default — every existing caller keeps this behavior unchanged). */
+export const USER_AUTH: HttpAuthConfig = { tokenKey: ACCESS_TOKEN_KEY, userKey: AUTH_USER_KEY, loginPath: '/login' }
+
+/** Admin panel session — separate storage so a browser can hold both sessions independently. */
+export const ADMIN_AUTH: HttpAuthConfig = { tokenKey: ADMIN_ACCESS_TOKEN_KEY, userKey: ADMIN_USER_KEY, loginPath: '/admin' }
+
 // 만료/무효 토큰으로 401을 받으면 세션을 정리하고 로그인 화면으로 보낸다.
-function handleSessionExpired() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY)
-  localStorage.removeItem(AUTH_USER_KEY)
-  if (window.location.pathname !== '/login') {
-    window.location.href = '/login?error=session'
+function handleSessionExpired(auth: HttpAuthConfig) {
+  localStorage.removeItem(auth.tokenKey)
+  localStorage.removeItem(auth.userKey)
+  if (window.location.pathname !== auth.loginPath) {
+    window.location.href = `${auth.loginPath}?error=session`
   }
 }
 
@@ -40,9 +53,10 @@ function handleSessionExpired() {
  *   (실제 로컬 서버에 요청해 확인함 — 이전에는 래퍼째로 반환돼 호출부 타입과 어긋나 있었다).
  *   단, /auth/google/callback처럼 ApiResponse로 감싸지 않고 DTO를 그대로 반환하는 엔드포인트도 있어
  *   (AuthController 주석 참고) `result` 필드 존재 여부로 감싸진 응답인지 판별한다.
+ * - 세 번째 인자로 어떤 세션(고객/관리자)의 토큰을 실을지 선택한다 — 생략하면 고객 세션(USER_AUTH).
  */
-export async function http<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem(ACCESS_TOKEN_KEY)
+export async function http<T>(path: string, init: RequestInit = {}, auth: HttpAuthConfig = USER_AUTH): Promise<T> {
+  const token = localStorage.getItem(auth.tokenKey)
 
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -73,7 +87,7 @@ export async function http<T>(path: string, init: RequestInit = {}): Promise<T> 
       }
       // 인증된 요청이 401이면 토큰 만료/무효로 간주, 세션 정리
       if (res.status === 401 && token) {
-        handleSessionExpired()
+        handleSessionExpired(auth)
       }
 
       throw new HttpError(res.status, message, text, code)
