@@ -28,7 +28,7 @@ import ReservationCompletePage from '@/pages/Reserve/ReservationCompletePage'
 
 function App() {
   const { isLoggedIn, user, login, logout } = useAuth()
-  const admin = useAdminAuth()
+  const admin = useAdminAuth(user)
 
   const requireAuth = (element: ReactNode) =>
     isLoggedIn ? element : <Navigate to="/login" replace />
@@ -73,7 +73,7 @@ function App() {
             admin.isLoggedIn ? (
               <Navigate to="/admin" replace />
             ) : (
-              <AdminLoginPage onLogin={admin.login} />
+              <AdminLoginPage isLoggedIn={isLoggedIn} user={user} />
             )
           }
         />

@@ -1,24 +1,11 @@
-import { useState } from 'react'
+import type { UserProfile } from '@/types'
 
-/** Mock admin session flag until the admin auth API is available. */
-const ADMIN_AUTH_KEY = 'travelx.adminLoggedIn'
-
-function useAdminAuth() {
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    () => localStorage.getItem(ADMIN_AUTH_KEY) === 'true',
-  )
-
-  const login = () => {
-    localStorage.setItem(ADMIN_AUTH_KEY, 'true')
-    setIsLoggedIn(true)
-  }
-
-  const logout = () => {
-    localStorage.removeItem(ADMIN_AUTH_KEY)
-    setIsLoggedIn(false)
-  }
-
-  return { isLoggedIn, login, logout }
+/**
+ * 별도 관리자 로그인 API는 없다 — 기존 Google OAuth + JWT 세션의 role 클레임이
+ * 'ADMIN'인지로만 관리자 화면 접근을 가른다.
+ */
+function useAdminAuth(user: UserProfile | null) {
+  return { isLoggedIn: user?.role === 'ADMIN' }
 }
 
 export default useAdminAuth

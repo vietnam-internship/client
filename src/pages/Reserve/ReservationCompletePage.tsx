@@ -4,7 +4,6 @@ import PageLayout from '@/components/PageLayout'
 import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { CheckIcon } from '@/components/icons'
 import type { ReservationDetail } from '@/types'
-import QrPlaceholder from '@/pages/Reserve/components/QrPlaceholder'
 
 function ReservationCompletePage() {
   const { id } = useParams()
@@ -43,8 +42,13 @@ function ReservationCompletePage() {
         <ReservationNumberCard className="mt-7" number={reservation.reservationNumber} />
 
         {reservation.qrPayload && (
-          <div className="mt-8 flex justify-center">
-            <QrPlaceholder />
+          <div className="mt-8">
+            <p className="text-center text-[12px] text-gray-400">
+              Show this code at the counter to pick up your currency
+            </p>
+            <p className="mt-2 rounded-xl bg-gray-100 px-4 py-3 text-center font-mono text-[13px] break-all text-gray-700 select-all">
+              {reservation.qrPayload}
+            </p>
           </div>
         )}
 

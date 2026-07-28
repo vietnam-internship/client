@@ -38,6 +38,7 @@ function ReservationDetailView({ reservationId }: { reservationId: number }) {
   const [hasError, setHasError] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
+  const [qrRevealed, setQrRevealed] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -122,13 +123,21 @@ function ReservationDetailView({ reservationId }: { reservationId: number }) {
             {isCancellable ? (
               <>
                 {reservation.status === 'RESERVED' && reservation.qrPayload ? (
-                  <button
-                    type="button"
-                    className="mt-3 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-50 text-[14px] font-bold text-primary transition-colors hover:bg-blue-100"
-                  >
-                    <QrCodeIcon className="h-[18px] w-[18px]" />
-                    View QR code
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setQrRevealed((v) => !v)}
+                      className="mt-3 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-50 text-[14px] font-bold text-primary transition-colors hover:bg-blue-100"
+                    >
+                      <QrCodeIcon className="h-[18px] w-[18px]" />
+                      {qrRevealed ? 'Hide QR code' : 'View QR code'}
+                    </button>
+                    {qrRevealed && (
+                      <p className="mt-2 rounded-xl bg-gray-100 px-4 py-3 text-center font-mono text-[13px] break-all text-gray-700 select-all">
+                        {reservation.qrPayload}
+                      </p>
+                    )}
+                  </>
                 ) : (
                   <p className="mt-3 rounded-xl bg-yellow-50 px-4 py-3 text-[12px] text-yellow-700">
                     Payment is required to confirm this reservation. Card payment isn't available
