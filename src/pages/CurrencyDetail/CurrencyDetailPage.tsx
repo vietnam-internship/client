@@ -60,6 +60,8 @@ function CurrencyDetailPage() {
   }
 
   const startPolling = (sessionId: number) => {
+    stopPolling()
+
     const poll = () => {
       getBranchRecommendation(sessionId)
         .then((res) => {
@@ -87,6 +89,7 @@ function CurrencyDetailPage() {
       fetchFallbackBranches()
     }, POLL_TIMEOUT_MS)
   }
+
 
   useEffect(() => {
     if (!upperCode) return
