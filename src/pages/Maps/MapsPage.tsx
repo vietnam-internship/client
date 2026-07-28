@@ -4,7 +4,7 @@ import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import ListRowLink from '@/components/ListRowLink'
 import PageLayout from '@/components/PageLayout'
-import MapPlaceholder from '@/pages/Maps/components/MapPlaceholder'
+import BranchMap from '@/pages/Maps/components/BranchMap'
 import type { BranchSummary } from '@/types'
 
 function MapsPage() {
@@ -30,7 +30,7 @@ function MapsPage() {
       <Header />
 
       <main className="flex-1 pb-28">
-        <MapPlaceholder />
+        <BranchMap branches={branches ?? []} />
 
         <div className="mt-7 px-7">
           <div className="flex items-start justify-between gap-3">
