@@ -3,24 +3,19 @@ import ActionButton from '@/components/ActionButton'
 import PageLayout from '@/components/PageLayout'
 import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { CheckIcon } from '@/components/icons'
-import { findPickupLocation } from '@/data/offices'
-import type { ReservationDraft } from '@/types'
+import type { PaymentDraft } from '@/types'
 import QrPlaceholder from '@/pages/Reserve/components/QrPlaceholder'
-
-type CompleteState = ReservationDraft & { reservationNumber: string }
 
 function ReservationCompletePage() {
   const { id } = useParams()
-  const state = useLocation().state as CompleteState | null
-  const location = findPickupLocation(id)
+  const state = useLocation().state as PaymentDraft | null
 
-  if (!location || !state) {
+  if (!state) {
     return <Navigate to={`/reserve/${id ?? ''}`} replace />
   }
 
   const summary = [
     { label: 'Amount', value: state.toAmount },
-    { label: 'Location', value: location.name },
     { label: 'Date', value: state.dateTime },
   ]
 

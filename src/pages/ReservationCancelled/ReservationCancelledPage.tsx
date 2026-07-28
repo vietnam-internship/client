@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import ActionButton from '@/components/ActionButton'
 import BottomNav from '@/components/BottomNav'
@@ -5,14 +6,40 @@ import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import ReservationNumberCard from '@/components/ReservationNumberCard'
 import { XIcon } from '@/components/icons'
-import { findReservation } from '@/data/reservations'
+import { getReservation } from '@/api/reservation'
+import { toDisplayReservation } from '@/utils/reservationDisplay'
+import type { Reservation } from '@/types'
 
 function ReservationCancelledPage() {
   const { id } = useParams()
-  const reservation = findReservation(id)
+  const reservationId = Number(id)
+
+  const [reservation, setReservation] = useState<Reservation | null>(null)
+  const [notFound, setNotFound] = useState(false)
+
+  useEffect(() => {
+    if (!Number.isFinite(reservationId)) return undefined
+
+    let cancelled = false
+    getReservation(reservationId)
+      .then((data) => {
+        if (!cancelled) setReservation(toDisplayReservation(data))
+      })
+      .catch(() => {
+        if (!cancelled) setNotFound(true)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [reservationId])
+
+  if (!Number.isFinite(reservationId) || notFound) {
+    return <Navigate to="/mypage/reservations" replace />
+  }
 
   if (!reservation) {
-    return <Navigate to="/mypage/reservations" replace />
+    return null
   }
 
   const summary = [

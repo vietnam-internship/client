@@ -41,14 +41,6 @@ export interface Branch {
   hours: { label: string; time: string }[]
 }
 
-export interface PickupOffice {
-  id: string
-  name: string
-  openUntil: string
-  rate: string
-  locationDetail: string
-}
-
 /**
  * GET /branches 목록 항목 — 위 `Branch`(목업, 아직 API 미연동 페이지에서 사용 중)와는 별개로,
  * 실제 서버 응답 스키마(BranchSummary)를 그대로 옮긴 타입이다.
@@ -106,16 +98,68 @@ export interface Reservation {
   status: ReservationStatus
 }
 
-/** Reservation details passed between the reserve pages via router state. */
-export interface ReservationDraft {
+/** Picked on PickupDetailsPage, carried via router state through review/payment/complete. */
+export interface PickupSelection {
+  branchId: number
+  currencyCode: string
+  amount: number
+  pickupDate: string
+  pickupTime: string
   dateTime: string
   fromAmount: string
   toAmount: string
 }
 
 /** Passed to PaymentPage via router state once ReviewReservationPage calls POST /reservations. */
-export interface PaymentDraft {
+export interface PaymentDraft extends PickupSelection {
   clientSecret: string
+  reservationId: number
+  reservationNumber: string
+}
+
+export type BackendReservationStatus = 'PENDING_PAYMENT' | 'RESERVED' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED'
+
+/** GET /reservations 목록 항목, GET /reservations/{id} 응답의 공통 필드. */
+export interface ReservationSummary {
+  id: number
+  reservationNumber: string
+  currencyCode: string
+  amount: number
+  branchId: number
+  branchName: string | null
+  pickupDate: string
+  pickupTime: string
+  status: BackendReservationStatus
+  lockedRate: number | null
+  paymentExpiresAt: string | null
+  expiresAt: string | null
+  createdAt: string
+}
+
+/** GET /reservations/{id} 응답 — paymentClientSecret은 예약 생성 응답에서만 값이 있다. */
+export interface ReservationDetail extends ReservationSummary {
+  amountFrom: number | null
+  amountTo: number
+  qrPayload: string | null
+  pickedUpAt: string | null
+  branch: BranchSummary | null
+  paymentClientSecret: string | null
+}
+
+export interface ReservationPageResponse {
+  content: ReservationSummary[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+export interface CreateReservationPayload {
+  currencyCode: string
+  branchId: number
+  amount: number
+  pickupDate: string
+  pickupTime: string
 }
 
 export interface Notification {

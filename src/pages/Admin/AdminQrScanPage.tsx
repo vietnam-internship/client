@@ -4,6 +4,7 @@ import { CheckIcon, XIcon } from '@/components/icons'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
 import StatusChip from '@/pages/Admin/components/StatusChip'
 import { adminLookupReservationByQr, adminCompleteReservation, adminRejectReservation } from '@/api/admin'
+import { extractQrToken } from '@/utils/qr'
 import type { AdminReservationDetail } from '@/types'
 
 type ScanStep = 'scanning' | 'confirmed' | 'completed' | 'rejected'
@@ -28,8 +29,11 @@ function AdminQrScanPage() {
   const [qrToken, setQrToken] = useState<string | null>(null)
 
   const handleScan = async () => {
-    const token = window.prompt('Enter scanned QR token:')
-    if (!token) return
+    const scanned = window.prompt('Enter scanned QR token:')
+    if (!scanned) return
+    // 고객 QR은 "{branchId}:{reservationId}:{token}" 조합 문자열이라, 리딤/조회 API가 비교하는
+    // 순수 토큰만 뽑아내야 한다 — 조합 문자열을 그대로 보내면 절대 매칭되지 않는다.
+    const token = extractQrToken(scanned)
     try {
       const detail = await adminLookupReservationByQr(BRANCH_ID, token)
       setReservation(detail)
