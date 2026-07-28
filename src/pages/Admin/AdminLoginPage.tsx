@@ -1,17 +1,24 @@
-import type { FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface AdminLoginPageProps {
-  onLogin: () => void
+  onLogin: (email: string, password: string) => Promise<void>
 }
 
 function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
   const navigate = useNavigate()
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onLogin()
-    navigate('/admin', { replace: true })
+    setError(null)
+    const formData = new FormData(event.currentTarget)
+    try {
+      await onLogin(String(formData.get('email')), String(formData.get('password')))
+      navigate('/admin', { replace: true })
+    } catch {
+      setError('Invalid email or password.')
+    }
   }
 
   return (
@@ -69,6 +76,8 @@ function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
             />
             <span className="text-[13px] text-gray-600">Keep me signed in on this device</span>
           </label>
+
+          {error && <p className="mt-3 text-[12px] text-red-600">{error}</p>}
 
           <button
             type="submit"

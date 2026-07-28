@@ -1,71 +1,36 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SearchIcon } from '@/components/icons'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
 import StatusChip, { type ChipStatus } from '@/pages/Admin/components/StatusChip'
-
-interface AdminReservation {
-  id: string
-  name: string
-  detail: string
-  sub?: string
-  note?: { text: string; tone: 'link' | 'alert' }
-  status: ChipStatus
-}
-
-const RESERVATIONS: AdminReservation[] = [
-  {
-    id: 'TX1',
-    name: 'Alexander Kim',
-    detail: 'USD → Terminal 1, B',
-    note: { text: 'Details', tone: 'link' },
-    status: 'pending',
-  },
-  {
-    id: 'TX2',
-    name: 'Sophia Lee',
-    detail: 'GBP → Arrivals Hall',
-    note: { text: 'Cancelled', tone: 'alert' },
-    status: 'cancelled',
-  },
-  {
-    id: 'TX3',
-    name: 'Mark Johnson',
-    detail: 'CAD',
-    note: { text: 'User requested cancellation at 10:45 AM', tone: 'alert' },
-    status: 'cancelled',
-  },
-  {
-    id: 'TX-90331',
-    name: 'Elena Rossi',
-    detail: 'EUR → USD · €2,100.00',
-    sub: 'Main Hub, Gate 4 · Pickup 6:00 PM tomorrow',
-    status: 'pending',
-  },
-]
+import { adminListReservations } from '@/api/admin'
+import type { AdminReservationSummary } from '@/types'
 
 const FILTERS = [
-  { value: 'all', label: 'ALL' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
-  { value: 'pending', label: 'Pending' },
+  { value: 'ALL', label: 'ALL' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+  { value: 'PENDING', label: 'Pending' },
 ] as const
 
 type FilterValue = (typeof FILTERS)[number]['value']
 
-const PAGES = [1, 2, 3, 4, 5]
+const BRANCH_ID = 1 // TODO(follow-up): read from BranchSelect once data/branches.ts maps to real numeric ids
 
 function AdminReservationsPage() {
   const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<FilterValue>('all')
+  const [filter, setFilter] = useState<FilterValue>('ALL')
+  const [page, setPage] = useState(0)
+  const [results, setResults] = useState<AdminReservationSummary[]>([])
+  const [totalPages, setTotalPages] = useState(1)
 
-  const normalized = query.trim().toLowerCase()
-  const results = RESERVATIONS.filter(
-    (reservation) =>
-      (filter === 'all' || reservation.status === filter) &&
-      (!normalized ||
-        reservation.name.toLowerCase().includes(normalized) ||
-        reservation.id.toLowerCase().includes(normalized)),
-  )
+  useEffect(() => {
+    adminListReservations(BRANCH_ID, { status: filter, q: query || undefined, page })
+      .then((res) => {
+        setResults(res.reservations)
+        setTotalPages(res.totalPages)
+      })
+      .catch(() => setResults([]))
+  }, [filter, query, page])
 
   return (
     <AdminLayout active="reservations" title="Reservations" subtitle="Review and manage bookings">
@@ -74,7 +39,10 @@ function AdminReservationsPage() {
         <input
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setPage(0)
+            setQuery(e.target.value)
+          }}
           placeholder="Search reservations"
           className="h-12 w-full rounded-lg border border-gray-200 pr-4 pl-10 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none"
         />
@@ -91,7 +59,10 @@ function AdminReservationsPage() {
           <button
             key={value}
             type="button"
-            onClick={() => setFilter(value)}
+            onClick={() => {
+              setPage(0)
+              setFilter(value)
+            }}
             className={`h-8 cursor-pointer rounded-full px-5 text-[12px] font-bold transition-colors ${
               filter === value
                 ? 'bg-primary text-white'
@@ -105,26 +76,16 @@ function AdminReservationsPage() {
 
       <ul className="mt-6 flex flex-col gap-5">
         {results.map((reservation) => (
-          <li
-            key={reservation.id}
-            className="relative rounded-lg border border-gray-200 px-6 py-6"
-          >
+          <li key={reservation.id} className="relative rounded-lg border border-gray-200 px-6 py-6">
             <span className="absolute top-4 right-5">
-              <StatusChip status={reservation.status} />
+              <StatusChip status={reservation.status as ChipStatus} />
             </span>
             <p className="text-[19px] font-bold text-gray-900">
-              {reservation.name} · #{reservation.id}
+              {reservation.customerName} · #{reservation.reservationNumber}
             </p>
-            <p className="mt-1.5 text-[13px] text-gray-500">{reservation.detail}</p>
-            {reservation.sub && <p className="mt-0.5 text-[12px] text-gray-400">{reservation.sub}</p>}
-            {reservation.note &&
-              (reservation.note.tone === 'link' ? (
-                <a href="#" className="mt-2 inline-block text-[12px] text-blue-700 hover:underline">
-                  {reservation.note.text}
-                </a>
-              ) : (
-                <p className="mt-2 text-[12px] text-red-500">{reservation.note.text}</p>
-              ))}
+            <p className="mt-1.5 text-[13px] text-gray-500">
+              {reservation.currencyPair} · {reservation.amount}
+            </p>
           </li>
         ))}
       </ul>
@@ -132,24 +93,29 @@ function AdminReservationsPage() {
       <nav className="mt-10 flex items-center justify-center gap-2" aria-label="Pagination">
         <button
           type="button"
-          className="h-6 cursor-pointer rounded-full bg-blue-50 px-2.5 text-[11px] font-bold text-primary"
+          disabled={page === 0}
+          onClick={() => setPage((p) => Math.max(0, p - 1))}
+          className="h-6 cursor-pointer rounded-full bg-blue-50 px-2.5 text-[11px] font-bold text-primary disabled:opacity-40"
         >
           &lt;
         </button>
-        {PAGES.map((page) => (
+        {Array.from({ length: totalPages }, (_, i) => i).map((p) => (
           <button
-            key={page}
+            key={p}
             type="button"
+            onClick={() => setPage(p)}
             className={`h-6 cursor-pointer rounded-full px-2.5 text-[11px] font-bold ${
-              page === 1 ? 'bg-primary text-white' : 'bg-blue-50 text-primary hover:bg-blue-100'
+              p === page ? 'bg-primary text-white' : 'bg-blue-50 text-primary hover:bg-blue-100'
             }`}
           >
-            {page}
+            {p + 1}
           </button>
         ))}
         <button
           type="button"
-          className="h-6 cursor-pointer rounded-full bg-blue-50 px-2.5 text-[11px] font-bold text-primary"
+          disabled={page >= totalPages - 1}
+          onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+          className="h-6 cursor-pointer rounded-full bg-blue-50 px-2.5 text-[11px] font-bold text-primary disabled:opacity-40"
         >
           &gt;
         </button>

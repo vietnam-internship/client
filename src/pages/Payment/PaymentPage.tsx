@@ -17,25 +17,44 @@ function CheckoutForm({ id }: { id: string }) {
   const elements = useElements()
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [succeeded, setSucceeded] = useState(false)
 
   const handleSubmit = async () => {
     if (!stripe || !elements) return
     setSubmitting(true)
     setErrorMessage(null)
 
-    // 결제 승인 자체는 Stripe 웹훅(payment_intent.succeeded)으로만 확정된다 — 이 리다이렉트는
-    // 카드사 3DS 등 추가 인증이 필요할 때만 실제로 페이지를 떠나고, 그 외엔 여기서 에러만 받는다.
-    const { error } = await stripe.confirmPayment({
+    // 결제 승인 자체는 Stripe 웹훅(payment_intent.succeeded)으로만 확정된다. redirect: 'if_required'라
+    // 카드사 3DS 등 추가 인증이 필요할 때만 return_url로 실제 페이지 이동하고, 그 외(일반 카드 결제)엔
+    // 여기서 바로 결과를 받는다 — ReservationCompletePage는 목업 오피스 데이터에 의존해 실제 예약
+    // id로는 못 들어가므로(신청 파트 연결 전까지) 지금은 이 페이지 안에서 성공 여부만 보여준다.
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/reserve/${id}/complete`,
       },
+      redirect: 'if_required',
     })
 
     if (error) {
       setErrorMessage(error.message ?? '결제에 실패했어요. 다시 시도해주세요.')
       setSubmitting(false)
+      return
     }
+
+    if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'processing') {
+      setSucceeded(true)
+    }
+    setSubmitting(false)
+  }
+
+  if (succeeded) {
+    return (
+      <p className="rounded-lg bg-green-50 px-4 py-3 text-[13px] text-green-700">
+        결제 성공 — 웹훅이 도착하면 예약이 RESERVED로 바뀌고 QR이 발급됩니다. (백엔드에서
+        GET /reservations/{id}로 상태 확인 가능)
+      </p>
+    )
   }
 
   return (
