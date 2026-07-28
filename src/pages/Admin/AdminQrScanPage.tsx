@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import QrPlaceholder from '@/pages/Admin/components/QrPlaceholder'
+import QrCameraScanner from '@/pages/Admin/components/QrCameraScanner'
 import { CheckIcon, XIcon } from '@/components/icons'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
 import BranchSelect from '@/pages/Admin/components/BranchSelect'
@@ -31,19 +32,33 @@ function AdminQrScanPage({ user }: AdminQrScanPageProps) {
   const [step, setStep] = useState<ScanStep>('scanning')
   const [reservation, setReservation] = useState<AdminReservationDetail | null>(null)
   const [qrToken, setQrToken] = useState<string | null>(null)
+  const [looking, setLooking] = useState(false)
+  const [lookupError, setLookupError] = useState<string | null>(null)
+  const [manualToken, setManualToken] = useState('')
 
-  const handleScan = async () => {
-    if (branchId === null) return
-    const token = window.prompt('Enter scanned QR token:')
-    if (!token) return
-    try {
-      const detail = await adminLookupReservationByQr(branchId, token)
-      setReservation(detail)
-      setQrToken(token)
-      setStep('confirmed')
-    } catch {
-      window.alert('Reservation not found for this branch.')
-    }
+  const handleToken = useCallback(
+    async (token: string) => {
+      if (branchId === null || looking) return
+      setLooking(true)
+      setLookupError(null)
+      try {
+        const detail = await adminLookupReservationByQr(branchId, token)
+        setReservation(detail)
+        setQrToken(token)
+        setStep('confirmed')
+      } catch {
+        setLookupError('이 지점의 예약을 찾을 수 없습니다. 다시 스캔해주세요.')
+      } finally {
+        setLooking(false)
+      }
+    },
+    [branchId, looking],
+  )
+
+  const handleManualSubmit = () => {
+    if (!manualToken.trim()) return
+    handleToken(manualToken.trim())
+    setManualToken('')
   }
 
   const handleComplete = async () => {
@@ -69,17 +84,35 @@ function AdminQrScanPage({ user }: AdminQrScanPageProps) {
 
         <section className="mt-8 rounded-lg border border-primary px-6 py-7">
           <h2 className="text-[18px] font-bold text-gray-900">Please show the QR code</h2>
-          <button
-            type="button"
-            onClick={handleScan}
-            className="mt-5 flex h-[500px] w-full cursor-pointer items-center justify-center bg-gray-200 text-center"
-          >
-            <span className="text-[12px] text-gray-700">
-              (camera screen)
-              <br />
-              scan the QR code and then go next page
-            </span>
-          </button>
+          <div className="relative mt-5">
+            <QrCameraScanner onDecode={handleToken} paused={looking || branchId === null} />
+            {looking && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                <span className="text-[13px] font-semibold text-white">Looking up reservation…</span>
+              </div>
+            )}
+          </div>
+
+          {lookupError && <p className="mt-3 text-[12px] text-red-600">{lookupError}</p>}
+
+          <div className="mt-5 flex gap-2.5">
+            <input
+              type="text"
+              value={manualToken}
+              onChange={(e) => setManualToken(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
+              placeholder="카메라가 안 되면 QR 코드를 직접 입력하세요"
+              className="h-11 w-full rounded-lg border border-gray-200 px-3.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={handleManualSubmit}
+              disabled={!manualToken.trim() || looking}
+              className="h-11 shrink-0 cursor-pointer rounded-lg bg-primary px-4 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              조회
+            </button>
+          </div>
         </section>
       </AdminLayout>
     )
