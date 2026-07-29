@@ -1,15 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
-import { RESERVATIONS } from '@/data/reservations'
-import type { HistoryStatus } from '@/types'
+import { listMyReservations } from '@/api/reservation'
+import { toDisplayReservation } from '@/utils/reservationDisplay'
+import type { HistoryStatus, Reservation } from '@/types'
 import HistoryCard from '@/pages/ExchangeHistory/components/HistoryCard'
 import SegmentedTabs from '@/pages/ExchangeHistory/components/SegmentedTabs'
 
+const STATUS_FILTERS: Record<HistoryStatus, string> = {
+  completed: 'COMPLETED',
+  cancelled: 'CANCELLED,EXPIRED',
+}
+
 function ExchangeHistoryPage() {
   const [tab, setTab] = useState<HistoryStatus>('completed')
-  const items = RESERVATIONS.filter((r) => r.status === tab)
+  const [items, setItems] = useState<Reservation[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    listMyReservations({ status: STATUS_FILTERS[tab] })
+      .then((data) => {
+        if (!cancelled) setItems(data.content.map((r) => toDisplayReservation(r)))
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [tab])
 
   return (
     <PageLayout>

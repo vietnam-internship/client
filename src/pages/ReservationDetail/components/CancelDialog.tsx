@@ -1,9 +1,10 @@
 interface CancelDialogProps {
   onKeep: () => void
   onCancel: () => void
+  cancelling?: boolean
 }
 
-function CancelDialog({ onKeep, onCancel }: CancelDialogProps) {
+function CancelDialog({ onKeep, onCancel, cancelling = false }: CancelDialogProps) {
   return (
     <div
       className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-5"
@@ -31,9 +32,10 @@ function CancelDialog({ onKeep, onCancel }: CancelDialogProps) {
         <button
           type="button"
           onClick={onCancel}
-          className="mt-1 h-10 w-full cursor-pointer text-[14px] font-bold text-red-600 transition-colors hover:text-red-700"
+          disabled={cancelling}
+          className="mt-1 h-10 w-full cursor-pointer text-[14px] font-bold text-red-600 transition-colors hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Cancel reservation
+          {cancelling ? 'Cancelling…' : 'Cancel reservation'}
         </button>
       </div>
     </div>
