@@ -260,7 +260,13 @@ function CurrencyDetailPage() {
           </h2>
 
           {branchLoading ? (
-            <p className="mt-3 text-[13px] text-gray-400">Finding best branches nearby...</p>
+            <div className="mt-3 flex items-center justify-center py-4">
+              <div
+                role="status"
+                aria-label="Finding best branches nearby"
+                className="h-5 w-5 animate-spin rounded-full border-2 border-gray-200 border-t-primary"
+              />
+            </div>
           ) : (
             <>
               <ul className="mt-1">
