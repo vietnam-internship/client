@@ -8,7 +8,6 @@ import { BellIcon, SearchIcon } from '@/components/icons'
 import useDisclosure from '@/hooks/useDisclosure'
 import type { Notification } from '@/types'
 import { getCurrencies, type CurrencySummary } from '@/api/currency'
-import AiReportCard from '@/pages/Home/components/AiReportCard'
 import PickupCard from '@/pages/Home/components/PickupCard'
 import RateCard from '@/pages/Home/components/RateCard'
 
@@ -98,18 +97,6 @@ function HomePage() {
               </Link>
             ))}
           </ul>
-        </section>
-
-        <hr className="mt-4 border-gray-100" />
-
-        <section className="mt-4">
-          <h2 className="text-[16px] font-bold text-gray-900">AI Report</h2>
-          <div className="mt-2.5">
-            <AiReportCard
-              title="Japanese yen (JPY)"
-              body="JPY is 3.2% stronger against KRW than its 30-day average. Rates like this have historically lasted 2-4 days before reversing."
-            />
-          </div>
         </section>
       </main>
 
