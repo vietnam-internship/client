@@ -3,7 +3,7 @@ import { GoogleMap, InfoWindowF, MarkerF, useJsApiLoader } from '@react-google-m
 import type { BranchSummary } from '@/types'
 
 const DEFAULT_CENTER = { lat: 37.5665, lng: 126.978 } // 서울 시청 — 지점이 없을 때 기본 위치
-const MAP_CONTAINER_STYLE = { width: '100%', height: '450px' }
+const DEFAULT_HEIGHT = '450px'
 const MAP_OPTIONS: google.maps.MapOptions = {
   mapTypeControl: false, // 좌상단 Map/Satellite 토글
   streetViewControl: false, // 우하단 스트리트뷰 페그맨
@@ -11,9 +11,11 @@ const MAP_OPTIONS: google.maps.MapOptions = {
 
 interface BranchMapProps {
   branches: BranchSummary[]
+  height?: string
 }
 
-function BranchMap({ branches }: BranchMapProps) {
+function BranchMap({ branches, height = DEFAULT_HEIGHT }: BranchMapProps) {
+  const mapContainerStyle = useMemo(() => ({ width: '100%', height }), [height])
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'travelx-google-map',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '',
@@ -62,7 +64,7 @@ function BranchMap({ branches }: BranchMapProps) {
   if (loadError) {
     return (
       <div
-        style={MAP_CONTAINER_STYLE}
+        style={mapContainerStyle}
         className="flex items-center justify-center bg-gray-100 text-[13px] text-gray-400"
       >
         Couldn&apos;t load the map.
@@ -73,7 +75,7 @@ function BranchMap({ branches }: BranchMapProps) {
   if (!isLoaded) {
     return (
       <div
-        style={MAP_CONTAINER_STYLE}
+        style={mapContainerStyle}
         className="flex items-center justify-center bg-gray-100 text-[13px] text-gray-400"
       >
         Loading map…
@@ -89,7 +91,7 @@ function BranchMap({ branches }: BranchMapProps) {
         </p>
       )}
       <GoogleMap
-        mapContainerStyle={MAP_CONTAINER_STYLE}
+        mapContainerStyle={mapContainerStyle}
         center={center}
         zoom={13}
         options={MAP_OPTIONS}
