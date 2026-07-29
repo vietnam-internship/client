@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import QrPlaceholder from '@/pages/Admin/components/QrPlaceholder'
+import QrCameraScanner from '@/pages/Admin/components/QrCameraScanner'
 import { CheckIcon, XIcon } from '@/components/icons'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
 import StatusChip from '@/pages/Admin/components/StatusChip'
@@ -28,9 +29,7 @@ function AdminQrScanPage() {
   const [reservation, setReservation] = useState<AdminReservationDetail | null>(null)
   const [qrToken, setQrToken] = useState<string | null>(null)
 
-  const handleScan = async () => {
-    const scanned = window.prompt('Enter scanned QR token:')
-    if (!scanned) return
+  const lookup = async (scanned: string) => {
     // 고객 QR은 "{branchId}:{reservationId}:{token}" 조합 문자열이라, 리딤/조회 API가 비교하는
     // 순수 토큰만 뽑아내야 한다 — 조합 문자열을 그대로 보내면 절대 매칭되지 않는다.
     const token = extractQrToken(scanned)
@@ -42,6 +41,12 @@ function AdminQrScanPage() {
     } catch {
       window.alert('Reservation not found for this branch.')
     }
+  }
+
+  const handleManualEntry = () => {
+    const scanned = window.prompt('Enter scanned QR token:')
+    if (!scanned) return
+    lookup(scanned)
   }
 
   const handleComplete = async () => {
@@ -61,17 +66,9 @@ function AdminQrScanPage() {
       <AdminLayout active="qr-scan" title="Reservations" subtitle="Review and manage bookings">
         <section className="mt-8 rounded-lg border border-primary px-6 py-7">
           <h2 className="text-[18px] font-bold text-gray-900">Please show the QR code</h2>
-          <button
-            type="button"
-            onClick={handleScan}
-            className="mt-5 flex h-[500px] w-full cursor-pointer items-center justify-center bg-gray-200 text-center"
-          >
-            <span className="text-[12px] text-gray-700">
-              (camera screen)
-              <br />
-              scan the QR code and then go next page
-            </span>
-          </button>
+          <div className="mt-5">
+            <QrCameraScanner onScan={lookup} onManualEntry={handleManualEntry} />
+          </div>
         </section>
       </AdminLayout>
     )
