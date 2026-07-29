@@ -47,50 +47,6 @@ function CurrencyDetailPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const stopPolling = () => {
-    if (pollRef.current) clearInterval(pollRef.current)
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-  }
-
-  const fetchFallbackBranches = () => {
-    listBranches({ currency: upperCode })
-      .then((b) => setFallbackBranches(b.slice(0, 4)))
-      .catch(() => {})
-      .finally(() => setBranchLoading(false))
-  }
-
-  const startPolling = (sessionId: number) => {
-    stopPolling()
-
-    const poll = () => {
-      getBranchRecommendation(sessionId)
-        .then((res) => {
-          if (res.status === 'COMPLETED') {
-            stopPolling()
-            setAiRecommendations(res.results.slice(0, 4))
-            setBranchDisclaimer(res.disclaimer)
-            setBranchLoading(false)
-          } else if (res.status === 'FAILED') {
-            stopPolling()
-            fetchFallbackBranches()
-          }
-        })
-        .catch(() => {
-          stopPolling()
-          fetchFallbackBranches()
-        })
-    }
-
-    pollRef.current = setInterval(poll, POLL_INTERVAL_MS)
-    poll()
-
-    timeoutRef.current = setTimeout(() => {
-      stopPolling()
-      fetchFallbackBranches()
-    }, POLL_TIMEOUT_MS)
-  }
-
-
   useEffect(() => {
     if (!upperCode) return
     setLoading(true)
@@ -116,13 +72,56 @@ function CurrencyDetailPage() {
     setAiRecommendations([])
     setFallbackBranches([])
 
+    let aborted = false
+
+    const stop = () => {
+      if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
+      if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null }
+    }
+
+    const fetchFallback = () => {
+      if (aborted) return
+      listBranches({ currency: upperCode })
+        .then((b) => { if (!aborted) setFallbackBranches(b.slice(0, 4)) })
+        .catch(() => {})
+        .finally(() => { if (!aborted) setBranchLoading(false) })
+    }
+
+    const startPolling = (sessionId: number) => {
+      const poll = () => {
+        if (aborted) return
+        getBranchRecommendation(sessionId)
+          .then((res) => {
+            if (aborted) return
+            if (res.status === 'COMPLETED') {
+              stop()
+              setAiRecommendations(res.results.slice(0, 4))
+              setBranchDisclaimer(res.disclaimer)
+              setBranchLoading(false)
+            } else if (res.status === 'FAILED') {
+              stop()
+              fetchFallback()
+            }
+          })
+          .catch(() => { if (!aborted) { stop(); fetchFallback() } })
+      }
+
+      pollRef.current = setInterval(poll, POLL_INTERVAL_MS)
+      poll()
+
+      timeoutRef.current = setTimeout(() => {
+        if (!aborted) { stop(); fetchFallback() }
+      }, POLL_TIMEOUT_MS)
+    }
+
     if (!navigator.geolocation) {
-      fetchFallbackBranches()
-      return
+      fetchFallback()
+      return () => { aborted = true }
     }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        if (aborted) return
         createBranchRecommendation({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
@@ -130,14 +129,17 @@ function CurrencyDetailPage() {
           currency: upperCode,
           amount: DEFAULT_AMOUNT,
         })
-          .then(({ sessionId }) => startPolling(sessionId))
-          .catch(() => fetchFallbackBranches())
+          .then(({ sessionId }) => { if (!aborted) startPolling(sessionId) })
+          .catch(() => fetchFallback())
       },
-      () => fetchFallbackBranches(),
+      () => fetchFallback(),
       { timeout: 5000 },
     )
 
-    return () => stopPolling()
+    return () => {
+      aborted = true
+      stop()
+    }
   }, [upperCode])
 
   if (notFound) return <Navigate to="/search" replace />

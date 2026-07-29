@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import QrPlaceholder from '@/pages/Admin/components/QrPlaceholder'
 import QrCameraScanner from '@/pages/Admin/components/QrCameraScanner'
 import { CheckIcon, XIcon } from '@/components/icons'
 import AdminLayout from '@/pages/Admin/components/AdminLayout'
+import BranchSelect from '@/pages/Admin/components/BranchSelect'
 import StatusChip from '@/pages/Admin/components/StatusChip'
 import { adminLookupReservationByQr, adminCompleteReservation, adminRejectReservation } from '@/api/admin'
+import useAdminBranch from '@/hooks/useAdminBranch'
 import { extractQrToken } from '@/utils/qr'
-import type { AdminReservationDetail } from '@/types'
+import type { AdminReservationDetail, UserProfile } from '@/types'
 
 type ScanStep = 'scanning' | 'confirmed' | 'completed' | 'rejected'
 
@@ -22,52 +24,98 @@ const RESULT_MESSAGES: Record<Exclude<ScanStep, 'scanning'>, string> = {
   rejected: 'Your currency exchange reservation was rejected by the shop',
 }
 
-const BRANCH_ID = 1 // TODO(follow-up): read from BranchSelect once data/branches.ts maps to real numeric ids
+interface AdminQrScanPageProps {
+  user: UserProfile | null
+}
 
-function AdminQrScanPage() {
+function AdminQrScanPage({ user }: AdminQrScanPageProps) {
+  const { branchId, setBranchId, branches, locked } = useAdminBranch(user)
   const [step, setStep] = useState<ScanStep>('scanning')
   const [reservation, setReservation] = useState<AdminReservationDetail | null>(null)
   const [qrToken, setQrToken] = useState<string | null>(null)
+  const [looking, setLooking] = useState(false)
+  const [lookupError, setLookupError] = useState<string | null>(null)
+  const [manualToken, setManualToken] = useState('')
 
-  const lookup = async (scanned: string) => {
-    // 고객 QR은 "{branchId}:{reservationId}:{token}" 조합 문자열이라, 리딤/조회 API가 비교하는
-    // 순수 토큰만 뽑아내야 한다 — 조합 문자열을 그대로 보내면 절대 매칭되지 않는다.
-    const token = extractQrToken(scanned)
-    try {
-      const detail = await adminLookupReservationByQr(BRANCH_ID, token)
-      setReservation(detail)
-      setQrToken(token)
-      setStep('confirmed')
-    } catch {
-      window.alert('Reservation not found for this branch.')
-    }
-  }
+  const handleToken = useCallback(
+    async (scanned: string) => {
+      if (branchId === null || looking) return
+      // 고객 QR은 "{branchId}:{reservationId}:{token}" 조합 문자열이라, 리딤/조회 API가 비교하는
+      // 순수 토큰만 뽑아내야 한다 — 조합 문자열을 그대로 보내면 절대 매칭되지 않는다.
+      const token = extractQrToken(scanned)
+      setLooking(true)
+      setLookupError(null)
+      try {
+        const detail = await adminLookupReservationByQr(branchId, token)
+        setReservation(detail)
+        setQrToken(token)
+        setStep('confirmed')
+      } catch {
+        setLookupError('이 지점의 예약을 찾을 수 없습니다. 다시 스캔해주세요.')
+      } finally {
+        setLooking(false)
+      }
+    },
+    [branchId, looking],
+  )
 
-  const handleManualEntry = () => {
-    const scanned = window.prompt('Enter scanned QR token:')
-    if (!scanned) return
-    lookup(scanned)
+  const handleManualSubmit = () => {
+    if (!manualToken.trim()) return
+    handleToken(manualToken.trim())
+    setManualToken('')
   }
 
   const handleComplete = async () => {
-    if (!reservation || !qrToken) return
-    await adminCompleteReservation(BRANCH_ID, reservation.id, qrToken)
+    if (!reservation || !qrToken || branchId === null) return
+    await adminCompleteReservation(branchId, reservation.id, qrToken)
     setStep('completed')
   }
 
   const handleReject = async () => {
-    if (!reservation) return
-    await adminRejectReservation(BRANCH_ID, reservation.id)
+    if (!reservation || branchId === null) return
+    await adminRejectReservation(branchId, reservation.id)
     setStep('rejected')
   }
 
   if (step === 'scanning' || !reservation) {
     return (
       <AdminLayout active="qr-scan" title="Reservations" subtitle="Review and manage bookings">
+        {!locked && (
+          <div className="mt-6">
+            <BranchSelect branches={branches} value={branchId} onChange={setBranchId} />
+          </div>
+        )}
+
         <section className="mt-8 rounded-lg border border-primary px-6 py-7">
           <h2 className="text-[18px] font-bold text-gray-900">Please show the QR code</h2>
-          <div className="mt-5">
-            <QrCameraScanner onScan={lookup} onManualEntry={handleManualEntry} />
+          <div className="relative mt-5">
+            <QrCameraScanner onDecode={handleToken} paused={looking || branchId === null} />
+            {looking && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                <span className="text-[13px] font-semibold text-white">Looking up reservation…</span>
+              </div>
+            )}
+          </div>
+
+          {lookupError && <p className="mt-3 text-[12px] text-red-600">{lookupError}</p>}
+
+          <div className="mt-5 flex gap-2.5">
+            <input
+              type="text"
+              value={manualToken}
+              onChange={(e) => setManualToken(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
+              placeholder="카메라가 안 되면 QR 코드를 직접 입력하세요"
+              className="h-11 w-full rounded-lg border border-gray-200 px-3.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={handleManualSubmit}
+              disabled={!manualToken.trim() || looking}
+              className="h-11 shrink-0 cursor-pointer rounded-lg bg-primary px-4 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              조회
+            </button>
           </div>
         </section>
       </AdminLayout>
