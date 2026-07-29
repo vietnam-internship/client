@@ -4,6 +4,7 @@ import { getBranch } from '@/api/branch'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
+import BranchMap from '@/pages/Maps/components/BranchMap'
 import { formatNumber } from '@/utils/format'
 import { HttpError } from '@/utils/http'
 import type { BranchDetail } from '@/types'
@@ -17,9 +18,6 @@ function BranchDetailPage() {
     return <Navigate to="/search" replace />
   }
 
-  // branchId가 바뀔 때(같은 라우트 엘리먼트를 유지한 채 다른 지점으로 이동) 매번 새로
-  // 마운트시켜 이전 지점의 상태가 남지 않게 한다 — effect 안에서 직접 state를 리셋하는 대신
-  // key로 인스턴스 자체를 새로 만드는 편이 더 React다운 방식이다.
   return <BranchDetailView key={branchId} branchId={branchId} />
 }
 
@@ -60,9 +58,11 @@ function BranchDetailView({ branchId }: { branchId: number }) {
       <Header backTo={-1} />
 
       <main className="flex-1 px-6 pb-28">
-        <div className="mt-3.5 flex h-32 items-center justify-center rounded-lg bg-gray-50">
-          <p className="text-[13px] text-gray-400">Map preview</p>
-        </div>
+        {branch && (
+          <div className="mt-3.5 overflow-hidden rounded-lg">
+            <BranchMap branches={[branch]} height="160px" />
+          </div>
+        )}
 
         {hasError && (
           <p className="mt-6 text-[13px] text-red-500">
