@@ -2,36 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
-import NotificationPanel from '@/components/NotificationPanel'
 import PageLayout from '@/components/PageLayout'
-import { BellIcon, SearchIcon } from '@/components/icons'
-import useDisclosure from '@/hooks/useDisclosure'
-import type { Notification } from '@/types'
+import { SearchIcon } from '@/components/icons'
 import { getCurrencies, type CurrencySummary } from '@/api/currency'
 import PickupCard from '@/pages/Home/components/PickupCard'
 import RateCard from '@/pages/Home/components/RateCard'
 
-const NOTIFICATIONS: Notification[] = [
-  {
-    icon: 'trend',
-    title: 'Myeongdong Exchange',
-    description: 'JPY rate is 3.2% lower than its 30-day average.',
-  },
-  {
-    icon: 'clock',
-    title: 'Incheon Airport T2 Exchange',
-    description: 'Your EUR pickup reservation is in 2 hours.',
-  },
-  {
-    icon: 'pin',
-    title: 'TravelX Hoan Kiem Branch',
-    description: 'Your VND pickup reservation is confirmed.',
-  },
-]
-
 function HomePage() {
   const navigate = useNavigate()
-  const notification = useDisclosure()
   const [currencies, setCurrencies] = useState<CurrencySummary[]>([])
 
   useEffect(() => {
@@ -41,24 +19,8 @@ function HomePage() {
   }, [])
 
   return (
-    <PageLayout className="relative">
-      <Header
-        right={
-          <button
-            type="button"
-            aria-label="Notifications"
-            onClick={notification.toggle}
-            className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-800 transition-colors hover:bg-gray-200"
-          >
-            <BellIcon className="h-[18px] w-[18px]" />
-            <span className="absolute top-1 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-gray-100" />
-          </button>
-        }
-      />
-
-      {notification.isOpen && (
-        <NotificationPanel notifications={NOTIFICATIONS} onClose={notification.close} />
-      )}
+    <PageLayout>
+      <Header />
 
       <main className="flex-1 px-4 pb-28">
         <h1 className="mt-8 text-[24px] font-bold text-gray-900">Exchange overview</h1>
