@@ -12,9 +12,11 @@ const MAP_OPTIONS: google.maps.MapOptions = {
 interface BranchMapProps {
   branches: BranchSummary[]
   height?: string
+  /** 'user'면 내 위치를 우선 중심으로(주변 탐색용), 'branches'면 항상 지점 위치를 중심으로(상세 보기용). */
+  centerOn?: 'user' | 'branches'
 }
 
-function BranchMap({ branches, height = DEFAULT_HEIGHT }: BranchMapProps) {
+function BranchMap({ branches, height = DEFAULT_HEIGHT, centerOn = 'user' }: BranchMapProps) {
   const mapContainerStyle = useMemo(() => ({ width: '100%', height }), [height])
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'travelx-google-map',
@@ -48,16 +50,17 @@ function BranchMap({ branches, height = DEFAULT_HEIGHT }: BranchMapProps) {
     )
   }, [])
 
-  // 현재 위치가 있으면 그걸 우선 중심으로, 없으면 지점들의 평균 위치, 그마저 없으면 기본값
+  // centerOn='user'면 현재 위치를 우선 중심으로(주변 탐색용), 'branches'면 항상 지점 위치
+  // 평균을 중심으로(상세 보기용 — 지점 핀이 화면 밖으로 밀려나면 안 되므로 내 위치를 우선하지 않는다).
   const center = useMemo(() => {
-    if (userLocation) return userLocation
-    if (branches.length === 0) return DEFAULT_CENTER
+    if (centerOn === 'user' && userLocation) return userLocation
+    if (branches.length === 0) return userLocation ?? DEFAULT_CENTER
     const sum = branches.reduce(
       (acc, b) => ({ lat: acc.lat + b.latitude, lng: acc.lng + b.longitude }),
       { lat: 0, lng: 0 },
     )
     return { lat: sum.lat / branches.length, lng: sum.lng / branches.length }
-  }, [branches, userLocation])
+  }, [branches, userLocation, centerOn])
 
   const activeBranch = branches.find((b) => b.id === activeBranchId) ?? null
 

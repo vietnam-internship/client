@@ -158,12 +158,6 @@ export interface CreateReservationPayload {
   pickupTime: string
 }
 
-export interface Notification {
-  icon: 'trend' | 'clock' | 'pin'
-  title: string
-  description: string
-}
-
 export interface Rate {
   code: string
   name: string

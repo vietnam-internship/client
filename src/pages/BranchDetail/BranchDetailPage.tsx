@@ -60,7 +60,7 @@ function BranchDetailView({ branchId }: { branchId: number }) {
       <main className="flex-1 px-6 pb-28">
         {branch && (
           <div className="mt-3.5 overflow-hidden rounded-lg">
-            <BranchMap branches={[branch]} height="160px" />
+            <BranchMap branches={[branch]} height="160px" centerOn="branches" />
           </div>
         )}
 
