@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getBranch } from '@/api/branch'
+import { getBranch, getBranchTimeSlots } from '@/api/branch'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
 import PageLayout from '@/components/PageLayout'
 import { formatNumber, parseAmount } from '@/utils/format'
 import { HttpError } from '@/utils/http'
 import AmountField from '@/pages/Reserve/components/AmountField'
-import type { BranchDetail } from '@/types'
+import type { BranchDetail, BranchTimeSlot } from '@/types'
 
-const TIME_SLOTS = ['10:00', '10:30', '11:00', '11:30', '13:00', '13:30', '14:00', '14:30']
+/** "08:00:00" -> "08:00" (서버 LocalTime "HH:mm:ss" 응답을 표시용으로 자름) */
+function toDisplayTime(time: string) {
+  return time.slice(0, 5)
+}
 
 const CURRENCY_FLAGS: Record<string, string> = {
   USD: '🇺🇸',
@@ -46,7 +49,10 @@ function PickupDetailsPage() {
   const [notFound, setNotFound] = useState(false)
   const dates = useMemo(() => buildUpcomingDates(7), [])
   const [selectedDate, setSelectedDate] = useState(dates[0])
-  const [time, setTime] = useState(TIME_SLOTS[0])
+  const [slots, setSlots] = useState<BranchTimeSlot[]>([])
+  const [slotsOpen, setSlotsOpen] = useState(true)
+  const [slotsLoading, setSlotsLoading] = useState(true)
+  const [time, setTime] = useState<string | null>(null)
   const [input, setInput] = useState('')
   const [selectedCurrencyCode, setSelectedCurrencyCode] = useState<string | null>(null)
 
@@ -68,6 +74,35 @@ function PickupDetailsPage() {
       cancelled = true
     }
   }, [branchId])
+
+  useEffect(() => {
+    if (!Number.isFinite(branchId)) return undefined
+
+    let cancelled = false
+    setSlotsLoading(true)
+    setTime(null)
+    getBranchTimeSlots(branchId, toIsoDate(selectedDate))
+      .then((data) => {
+        if (cancelled) return
+        setSlots(data.slots)
+        setSlotsOpen(data.open)
+        const firstAvailable = data.slots.find((slot) => slot.remaining > 0)
+        if (firstAvailable) setTime(firstAvailable.time)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSlots([])
+          setSlotsOpen(false)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setSlotsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [branchId, selectedDate])
 
   if (!Number.isFinite(branchId) || notFound) {
     return <Navigate to="/maps" replace />
@@ -91,18 +126,19 @@ function PickupDetailsPage() {
     null
   const amount = parseAmount(input)
   const krw = currency ? amount * currency.finalRate : 0
-  const canContinue = currency !== null && amount > 0
+  const canContinue = currency !== null && amount > 0 && time !== null
 
   const handleContinue = () => {
-    if (!currency || !canContinue) return
+    if (!currency || !canContinue || !time) return
+    const displayTime = toDisplayTime(time)
     navigate(`/reserve/${id}/review`, {
       state: {
         branchId: branch.id,
         currencyCode: currency.currencyCode,
         amount,
         pickupDate: toIsoDate(selectedDate),
-        pickupTime: time,
-        dateTime: `${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · ${time}`,
+        pickupTime: displayTime,
+        dateTime: `${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · ${displayTime}`,
         fromAmount: `${formatNumber(krw)} KRW`,
         toAmount: `${formatNumber(amount)} ${currency.currencyCode}`,
       },
@@ -142,22 +178,34 @@ function PickupDetailsPage() {
 
         <section className="mt-7">
           <h2 className="text-[15px] font-bold text-gray-900">Select time slot</h2>
-          <div className="mt-3 grid grid-cols-3 gap-2.5">
-            {TIME_SLOTS.map((slot) => (
-              <button
-                key={slot}
-                type="button"
-                onClick={() => setTime(slot)}
-                className={`h-[34px] cursor-pointer rounded-full text-[12px] font-medium transition-colors ${
-                  time === slot
-                    ? 'bg-primary text-white'
-                    : 'border border-gray-200 bg-white text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                {slot}
-              </button>
-            ))}
-          </div>
+          {slotsLoading ? (
+            <p className="mt-3 text-[12px] text-gray-400">Loading available times…</p>
+          ) : !slotsOpen ? (
+            <p className="mt-3 text-[12px] text-gray-400">This branch is closed on the selected date.</p>
+          ) : slots.length === 0 ? (
+            <p className="mt-3 text-[12px] text-gray-400">No time slots available.</p>
+          ) : (
+            <div className="mt-3 grid max-h-[220px] grid-cols-3 gap-2.5 overflow-y-auto pr-1">
+              {slots.map((slot) => {
+                const full = slot.remaining <= 0
+                return (
+                  <button
+                    key={slot.time}
+                    type="button"
+                    disabled={full}
+                    onClick={() => setTime(slot.time)}
+                    className={`h-[34px] cursor-pointer rounded-full text-[12px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                      time === slot.time
+                        ? 'bg-primary text-white'
+                        : 'border border-gray-200 bg-white text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    {toDisplayTime(slot.time)}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </section>
 
         <section className="mt-8">
