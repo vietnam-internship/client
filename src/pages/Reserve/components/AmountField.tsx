@@ -5,9 +5,23 @@ interface AmountFieldProps {
   amount: string
   editable?: boolean
   onChange?: (value: string) => void
+  /** 2개 이상 넘기면 label 자리가 드롭다운으로 바뀌어 사용자가 통화를 바꿀 수 있다. */
+  currencyOptions?: string[]
+  onCurrencyChange?: (code: string) => void
 }
 
-function AmountField({ flag, label, unit, amount, editable = false, onChange }: AmountFieldProps) {
+function AmountField({
+  flag,
+  label,
+  unit,
+  amount,
+  editable = false,
+  onChange,
+  currencyOptions,
+  onCurrencyChange,
+}: AmountFieldProps) {
+  const canPickCurrency = editable && onCurrencyChange && (currencyOptions?.length ?? 0) > 1
+
   return (
     <label
       className={`flex h-10 items-center gap-2.5 rounded-lg px-3.5 ${
@@ -15,7 +29,22 @@ function AmountField({ flag, label, unit, amount, editable = false, onChange }: 
       }`}
     >
       <span className="text-[13px] leading-none">{flag}</span>
-      <span className="flex-1 text-[13px] font-bold text-gray-900">{label}</span>
+      {canPickCurrency ? (
+        <select
+          aria-label="Select currency"
+          value={label}
+          onChange={(e) => onCurrencyChange(e.target.value)}
+          className="flex-1 cursor-pointer bg-transparent text-[13px] font-bold text-gray-900 focus:outline-none"
+        >
+          {currencyOptions?.map((code) => (
+            <option key={code} value={code}>
+              {code}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <span className="flex-1 text-[13px] font-bold text-gray-900">{label}</span>
+      )}
       {editable ? (
         <input
           type="text"

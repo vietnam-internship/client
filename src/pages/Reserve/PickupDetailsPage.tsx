@@ -48,6 +48,7 @@ function PickupDetailsPage() {
   const [selectedDate, setSelectedDate] = useState(dates[0])
   const [time, setTime] = useState(TIME_SLOTS[0])
   const [input, setInput] = useState('')
+  const [selectedCurrencyCode, setSelectedCurrencyCode] = useState<string | null>(null)
 
   useEffect(() => {
     if (!Number.isFinite(branchId)) return undefined
@@ -85,7 +86,7 @@ function PickupDetailsPage() {
   }
 
   const currency =
-    branch.currencies.find((c) => c.currencyCode === wantedCurrencyCode) ??
+    branch.currencies.find((c) => c.currencyCode === (selectedCurrencyCode ?? wantedCurrencyCode)) ??
     branch.currencies[0] ??
     null
   const amount = parseAmount(input)
@@ -183,6 +184,8 @@ function PickupDetailsPage() {
                 amount={input}
                 editable
                 onChange={(value) => setInput(parseAmount(value) ? formatNumber(parseAmount(value)) : '')}
+                currencyOptions={wantedCurrencyCode ? undefined : branch.currencies.map((c) => c.currencyCode)}
+                onCurrencyChange={wantedCurrencyCode ? undefined : setSelectedCurrencyCode}
               />
             </>
           ) : (
