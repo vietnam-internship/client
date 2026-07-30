@@ -273,7 +273,7 @@ function CurrencyDetailPage() {
                 {displayBranches.map((branch) => (
                   <ListRowLink
                     key={branch.id}
-                    to={`/branch/${branch.id}`}
+                    to={`/branch/${branch.id}?currency=${upperCode}`}
                     onClick={() => {
                       if (isAiResult) recordRecommendationClick(branch.id).catch(() => {})
                     }}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getBranch } from '@/api/branch'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
@@ -39,6 +39,8 @@ function PickupDetailsPage() {
   const { id } = useParams()
   const branchId = Number(id)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const wantedCurrencyCode = searchParams.get('currency')
 
   const [branch, setBranch] = useState<BranchDetail | null>(null)
   const [notFound, setNotFound] = useState(false)
@@ -82,7 +84,10 @@ function PickupDetailsPage() {
     )
   }
 
-  const currency = branch.currencies[0] ?? null
+  const currency =
+    branch.currencies.find((c) => c.currencyCode === wantedCurrencyCode) ??
+    branch.currencies[0] ??
+    null
   const amount = parseAmount(input)
   const krw = currency ? amount * currency.finalRate : 0
   const canContinue = currency !== null && amount > 0
