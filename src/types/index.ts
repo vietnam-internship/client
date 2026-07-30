@@ -78,6 +78,18 @@ export interface BranchDetail extends BranchSummary {
   currencies: BranchCurrencyRate[]
 }
 
+export interface BranchTimeSlot {
+  /** "HH:mm:ss" */
+  time: string
+  remaining: number
+}
+
+export interface BranchTimeSlotsResponse {
+  /** 그 날짜에 지점이 영업하는지 여부. false면 slots는 항상 빈 배열. */
+  open: boolean
+  slots: BranchTimeSlot[]
+}
+
 export type ReservationStatus = 'active' | 'completed' | 'cancelled'
 
 /** Statuses shown in exchange history, i.e. reservations that are no longer active. */

@@ -1,5 +1,5 @@
 import { http } from '@/utils/http'
-import type { BranchDetail, BranchSummary } from '@/types'
+import type { BranchDetail, BranchSummary, BranchTimeSlotsResponse } from '@/types'
 
 export interface ListBranchesParams {
   currency?: string
@@ -23,4 +23,10 @@ export function listBranches(params: ListBranchesParams = {}): Promise<BranchSum
 // GET /branches/{id} — 지점 상세 (통화별 환율, 영업시간, 주변 최저가 여부 등)
 export function getBranch(id: number): Promise<BranchDetail> {
   return http<BranchDetail>(`/branches/${id}`)
+}
+
+// GET /branches/{id}/time-slots?date= — 지점의 특정 날짜 30분 단위 예약 가능 슬롯.
+// date는 "YYYY-MM-DD" (로컬 날짜, toIsoDate 참고).
+export function getBranchTimeSlots(id: number, date: string): Promise<BranchTimeSlotsResponse> {
+  return http<BranchTimeSlotsResponse>(`/branches/${id}/time-slots?date=${date}`)
 }
