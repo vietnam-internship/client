@@ -55,7 +55,12 @@ function SearchPage() {
       <main className="flex-1 px-4 pb-28">
         {!query.trim() && (
           <div className="mt-6">
-            <RecentSearches items={recent} onRemove={removeRecent} onClear={clearRecent} />
+            <RecentSearches
+              items={recent}
+              onSelect={addRecent}
+              onRemove={removeRecent}
+              onClear={clearRecent}
+            />
           </div>
         )}
 

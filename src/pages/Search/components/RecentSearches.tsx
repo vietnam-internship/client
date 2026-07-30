@@ -1,12 +1,14 @@
+import { Link } from 'react-router-dom'
 import { XIcon } from '@/components/icons'
 
 interface RecentSearchesProps {
   items: string[]
+  onSelect: (code: string) => void
   onRemove: (code: string) => void
   onClear: () => void
 }
 
-function RecentSearches({ items, onRemove, onClear }: RecentSearchesProps) {
+function RecentSearches({ items, onSelect, onRemove, onClear }: RecentSearchesProps) {
   if (items.length === 0) return null
 
   return (
@@ -28,7 +30,13 @@ function RecentSearches({ items, onRemove, onClear }: RecentSearchesProps) {
             key={code}
             className="flex h-[30px] items-center gap-1.5 rounded-lg border border-gray-200 px-3"
           >
-            <span className="text-[13px] font-medium text-gray-900">{code}</span>
+            <Link
+              to={`/currency/${code.toLowerCase()}`}
+              onClick={() => onSelect(code)}
+              className="text-[13px] font-medium text-gray-900"
+            >
+              {code}
+            </Link>
             <button
               type="button"
               aria-label={`Remove ${code}`}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getBranch } from '@/api/branch'
 import BottomNav from '@/components/BottomNav'
 import Header from '@/components/Header'
@@ -23,6 +23,8 @@ function BranchDetailPage() {
 
 function BranchDetailView({ branchId }: { branchId: number }) {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const currencyCode = searchParams.get('currency')
 
   const [branch, setBranch] = useState<BranchDetail | null>(null)
   const [notFound, setNotFound] = useState(false)
@@ -121,7 +123,11 @@ function BranchDetailView({ branchId }: { branchId: number }) {
 
             <button
               type="button"
-              onClick={() => navigate(`/reserve/${branch.id}`)}
+              onClick={() =>
+                navigate(
+                  currencyCode ? `/reserve/${branch.id}?currency=${currencyCode}` : `/reserve/${branch.id}`,
+                )
+              }
               className="mt-6 h-11 w-full cursor-pointer rounded-xl bg-primary text-[14px] font-bold text-white transition-opacity hover:opacity-90"
             >
               Reserve now
